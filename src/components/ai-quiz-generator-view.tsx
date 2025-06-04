@@ -14,7 +14,8 @@ import type { QuizQuestionGeneratorInput, QuizQuestionGeneratorOutput } from '@/
 import toast from 'react-hot-toast';
 import { LoadingIndicator } from "@/components/loading-indicator";
 import { getStoredLanguage } from "./settings-view";
-import { addUserPoints } from "@/lib/points"; // Import point utility
+import { addUserPoints } from "@/lib/points";
+import { checkAndAwardBadges, updateUserStats } from "@/lib/badges";
 import { ArrowLeft, ArrowRight, CheckCircle, HelpCircle, ListChecks, RotateCcw, XCircle, FileText, Sparkles, BarChart3, Award } from "lucide-react";
 
 interface GeneratedQuestion {
@@ -38,7 +39,7 @@ interface LastQuizResults {
     userAnswers: Array<string | null>;
     score: number;
     quizConfig: QuizConfig;
-    pointsEarned: number; // Add points earned
+    pointsEarned: number;
 }
 
 interface AiQuizGeneratorCache {
@@ -49,8 +50,20 @@ interface AiQuizGeneratorCache {
   languageAtGeneration: string | null;
 }
 
+// For Advanced Performance Analytics - Iteration 1
+interface QuizAttempt {
+  id: string;
+  timestamp: string;
+  quizConfig: QuizConfig;
+  score: number;
+  totalQuestions: number;
+  accuracy: number;
+  questions: Array<GeneratedQuestion & { userAnswer: string | null; isCorrect: boolean | undefined }>;
+  language: string;
+}
 
 const AI_QUIZ_GENERATOR_CACHE_KEY = "ai-quiz-generator-cache";
+const QUIZ_HISTORY_KEY = "ai-quiz-history"; // For Advanced Performance Analytics
 
 const rrbNTPCSubjectsAndTopics: Record<string, string[]> = {
   "Mathematics": [
@@ -274,16 +287,50 @@ export default function AiQuizGeneratorView() {
         if (isCorrect) score++;
         return { ...q, userAnswer, isCorrect };
     });
-    const pointsEarned = score * 10; // 10 points per correct answer
+    const pointsEarned = score * 10;
     addUserPoints(pointsEarned);
-    setLastQuizResults({ 
+
+    updateUserStats({
+        quizCompleted: true,
+        topic: quizConfig.topic,
+        subject: quizConfig.subject
+    });
+    checkAndAwardBadges();
+
+    const currentResults: LastQuizResults = { 
         questions: resultsQuestions, 
         userAnswers: userSelectedAnswers, 
         score,
-        quizConfig: { ...quizConfig },
+        quizConfig: { ...quizConfig }, // Store a snapshot of the config for these results
         pointsEarned
-    });
+    };
+    setLastQuizResults(currentResults);
     setQuizState("results");
+
+    // Store quiz attempt in history
+    if (languageAtGeneration) {
+        const newAttempt: QuizAttempt = {
+            id: Date.now().toString(),
+            timestamp: new Date().toISOString(),
+            quizConfig: { ...quizConfig },
+            score: currentResults.score,
+            totalQuestions: currentResults.questions.length,
+            accuracy: currentResults.questions.length > 0 ? (currentResults.score / currentResults.questions.length) * 100 : 0,
+            questions: currentResults.questions,
+            language: languageAtGeneration,
+        };
+
+        try {
+            const historyString = localStorage.getItem(QUIZ_HISTORY_KEY);
+            const history: QuizAttempt[] = historyString ? JSON.parse(historyString) : [];
+            history.push(newAttempt);
+            // Optional: Limit history size, e.g., history.slice(-50)
+            localStorage.setItem(QUIZ_HISTORY_KEY, JSON.stringify(history));
+        } catch (error) {
+            console.error("Failed to save quiz history:", error);
+            toast.error("Could not save quiz attempt to history.");
+        }
+    }
   };
 
   const availableTopics = useMemo(() => {
@@ -550,3 +597,4 @@ export default function AiQuizGeneratorView() {
     </div>
   );
 }
+
