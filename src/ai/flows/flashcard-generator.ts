@@ -15,7 +15,8 @@ const FlashcardSchema = z.object({
   definition: z.string().describe('The definition, answer, or explanation for the back of the flashcard.'),
 });
 
-export const FlashcardGeneratorInputSchema = z.object({
+// Removed 'export' from the schema object
+const FlashcardGeneratorInputSchema = z.object({
   subject: z.string().describe('The subject area (e.g., Mathematics, General Awareness).'),
   topic: z.string().describe('The specific topic within the subject (e.g., Algebra, Indian History).'),
   numFlashcards: z.number().min(3).max(15).default(5).describe('The number of flashcards to generate (min 3, max 15).'),
@@ -23,7 +24,8 @@ export const FlashcardGeneratorInputSchema = z.object({
 });
 export type FlashcardGeneratorInput = z.infer<typeof FlashcardGeneratorInputSchema>;
 
-export const FlashcardGeneratorOutputSchema = z.object({
+// Removed 'export' from the schema object
+const FlashcardGeneratorOutputSchema = z.object({
   flashcards: z.array(FlashcardSchema).describe('An array of generated flashcards, each with a term and a definition.'),
 });
 export type FlashcardGeneratorOutput = z.infer<typeof FlashcardGeneratorOutputSchema>;
