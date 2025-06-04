@@ -30,7 +30,7 @@ function AppSidebarHeader() {
       <Link href="/" className="flex items-center gap-2">
         <Logo className="w-8 h-8 text-primary shrink-0" />
         {state !== 'collapsed' && ( // Conditionally render text
-          <h1 className="text-xl font-headline font-semibold truncate">NTPC Prep Ace</h1>
+          <h1 className="text-xl font-headline font-semibold truncate">PrepPal AI</h1>
         )}
       </Link>
     </SidebarHeader>

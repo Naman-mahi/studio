@@ -67,12 +67,11 @@ export default function DashboardPage() {
       <section className="bg-card p-6 md:p-8 rounded-lg shadow-xl">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-headline font-bold text-primary mb-2">Welcome to NTPC Prep Ace!</h1>
+            <h1 className="text-3xl md:text-4xl font-headline font-bold text-primary mb-2">Welcome to PrepPal AI!</h1>
             <p className="text-md md:text-lg text-muted-foreground mb-4 sm:mb-0">
-              Your ultimate companion for RRB NTPC 2025 exam preparation.
+              Your ultimate AI companion for exam preparation.
             </p>
           </div>
-          {/* Clear Cache Button Removed From Here */}
         </div>
          <p className="text-muted-foreground mb-6 text-sm">
           Set daily goals, access past papers, get AI-powered solutions,

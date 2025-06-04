@@ -4,8 +4,8 @@ import './globals.css';
 import { Toaster as HotToaster } from 'react-hot-toast'; // Renamed to avoid conflict if any
 
 export const metadata: Metadata = {
-  title: 'NTPC Prep Ace',
-  description: 'Your ultimate companion for RRB NTPC exam preparation.',
+  title: 'PrepPal AI',
+  description: 'Your ultimate AI companion for exam preparation.',
 };
 
 export default function RootLayout({
