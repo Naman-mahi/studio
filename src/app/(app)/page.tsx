@@ -4,34 +4,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Cpu, ListChecks, MessagesSquare, NotebookText, MessageCircleQuestion, Newspaper, Trash2, GraduationCap, Settings } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import toast from 'react-hot-toast';
-import { useState } from "react";
-import StudyStreakTracker from "@/components/study-streak-tracker"; 
-import { USER_LANGUAGE_PREFERENCE_KEY } from "@/components/settings-view";
-
-const CACHE_KEYS = [
-  "ai-qa-chat-messages",
-  "chat-support-messages",
-  "ai-solver-cached-input",
-  "ai-solver-cached-result",
-  "practice-questions-cache",
-  "current-affairs-cache",
-  "studyStreakData",
-  "topic-ai-tutor-selection",
-  USER_LANGUAGE_PREFERENCE_KEY, // Added for language preference
-];
+import { Cpu, ListChecks, MessagesSquare, NotebookText, MessageCircleQuestion, Newspaper, Settings, GraduationCap } from "lucide-react";
+import StudyStreakTracker from "@/components/study-streak-tracker";
 
 const featureCardColors = [
   "bg-sky-600 text-white",
@@ -41,7 +15,7 @@ const featureCardColors = [
   "bg-amber-500 text-black",
   "bg-teal-600 text-white",
   "bg-indigo-600 text-white",
-  "bg-slate-600 text-white", // Added one more color for settings
+  "bg-slate-600 text-white",
 ];
 
 interface FeatureCardProps {
@@ -77,39 +51,6 @@ function FeatureCard({ icon: Icon, title, description, linkHref, linkText, bgCol
 }
 
 export default function DashboardPage() {
-  const [isAlertOpen, setIsAlertOpen] = useState(false);
-
-  const handleClearCache = () => {
-    try {
-      let clearedCount = 0;
-      CACHE_KEYS.forEach(key => {
-        if (localStorage.getItem(key) !== null) {
-            localStorage.removeItem(key);
-            clearedCount++;
-        }
-      });
-
-      // Clear topic tutor messages which are stored with dynamic keys
-      Object.keys(localStorage).forEach(key => {
-        if (key.startsWith("topic-ai-tutor-messages-")) {
-          localStorage.removeItem(key);
-          clearedCount++;
-        }
-      });
-      
-      if (clearedCount > 0) {
-        toast.success("All locally stored application data has been cleared.");
-      } else {
-        toast("No cached data found to clear.");
-      }
-    } catch (error) {
-      console.error("Failed to clear cache:", error);
-      toast.error("Could not clear all cached data. Please try again.");
-    }
-    setIsAlertOpen(false);
-    window.location.reload(); 
-  };
-
   const features = [
     { icon: Cpu, title: "AI Question Solver", description: "Upload question papers and get AI-powered solutions and answer keys.", linkHref: "/ai-solver", linkText: "Try AI Solver", titleForColorBox: "AI Solver" },
     { icon: ListChecks, title: "Practice Questions", description: "Generate practice questions based on specific RRB NTPC topics and subjects.", linkHref: "/practice-questions", linkText: "Create Quiz", titleForColorBox: "Practice Quiz" },
@@ -118,9 +59,8 @@ export default function DashboardPage() {
     { icon: MessagesSquare, title: "Chat Support (General)", description: "Engage with our AI for general question clarification and discussion.", linkHref: "/chat-support", linkText: "Start Chatting", titleForColorBox: "General AI Chat" },
     { icon: NotebookText, title: "Past Papers", description: "Review previous RRB NTPC exam papers to understand patterns.", linkHref: "/past-papers", linkText: "Explore Papers", titleForColorBox: "Past Papers" },
     { icon: Newspaper, title: "Current Affairs", description: "Stay updated with the latest current events relevant for your exams.", linkHref: "/current-affairs", linkText: "Get Updates", titleForColorBox: "Current Affairs" },
-    { icon: Settings, title: "Settings", description: "Customize your application experience, like AI language preference.", linkHref: "/settings", linkText: "Go to Settings", titleForColorBox: "Settings" },
+    { icon: Settings, title: "Settings", description: "Customize your application experience, like AI language preference and clear cached data.", linkHref: "/settings", linkText: "Go to Settings", titleForColorBox: "Settings" },
   ];
-
 
   return (
     <div className="space-y-8">
@@ -132,28 +72,7 @@ export default function DashboardPage() {
               Your ultimate companion for RRB NTPC 2025 exam preparation.
             </p>
           </div>
-          <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" className="shrink-0 border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive shadow-sm hover:shadow-md transition-shadow">
-                <Trash2 className="mr-2 h-4 w-4" /> Clear Cached Data
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="shadow-xl">
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action will permanently delete all cached data from this application in your browser,
-                  including chat histories, saved inputs, generated content, study streak progress, topic selections, and language preferences. This cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleClearCache} className="bg-destructive hover:bg-destructive/90 shadow-md hover:shadow-lg">
-                  Yes, clear cache
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          {/* Clear Cache Button Removed From Here */}
         </div>
          <p className="text-muted-foreground mb-6 text-sm">
           Set daily goals, access past papers, get AI-powered solutions,
@@ -169,6 +88,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
+      {/* StudyStreakTracker moved to the top */}
       <StudyStreakTracker />
 
       <section>

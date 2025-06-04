@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -15,12 +16,12 @@
     --secondary: 215 35% 92%; /* Lighter, softer blue-gray for secondary elements */
     --secondary-foreground: 220 20% 30%; /* Darker text for secondary elements */
     --muted: 215 35% 92%;
-    --muted-foreground: 215 20% 55%; 
+    --muted-foreground: 215 20% 55%;
     --accent: 270 70% 60%;  /* Rich, modern purple */
-    --accent-foreground: 0 0% 100%; 
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 80% 55%;
     --destructive-foreground: 0 0% 98%;
-    --border: 210 20% 90%; /* Softer borders */
+    --border: 220 30% 97%; /* Match background to remove borders */
     --input: 210 30% 96%; /* Lighter input background */
     --input-foreground: 220 20% 25%; /* Ensure input text is readable */
     --ring: 225 70% 55%; /* Primary color for rings */
@@ -31,15 +32,15 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
 
-    /* Sidebar specific colors */
-    --sidebar-background: 220 30% 15%; /* Darker, more saturated blue for contrast */
-    --sidebar-foreground: 210 25% 80%; /* Softer light text */
-    --sidebar-primary: 225 70% 55%;    /* Active item background to match app primary */
-    --sidebar-primary-foreground: 0 0% 100%; /* Active item text */
-    --sidebar-accent: 220 25% 22%;     /* Hover background */
-    --sidebar-accent-foreground: 210 25% 88%;
-    --sidebar-border: 220 20% 12%;      /* Darker border for definition */
-    --sidebar-ring: 225 70% 55%;
+    /* Modern Sidebar Colors - Light Theme */
+    --sidebar-background: 220 25% 18%; /* Darker, distinct charcoal/deep blue */
+    --sidebar-foreground: 210 30% 88%; /* Clear light text */
+    --sidebar-accent: 225 70% 58%;    /* Vibrant blue for active/hover */
+    --sidebar-accent-foreground: 0 0% 100%; /* White text for active/hover */
+    --sidebar-primary: hsl(var(--sidebar-accent)); /* Use accent for primary indication */
+    --sidebar-primary-foreground: hsl(var(--sidebar-accent-foreground));
+    --sidebar-border: 220 20% 15%;      /* Very subtle darker border */
+    --sidebar-ring: 225 70% 58%;
   }
 
   .dark {
@@ -50,40 +51,40 @@
     --popover: 220 25% 10%;
     --popover-foreground: 210 30% 90%;
     --primary: 225 70% 65%; /* Brighter primary for dark mode */
-    --primary-foreground: 0 0% 100%; 
-    --secondary: 220 18% 22%; 
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 18% 22%;
     --secondary-foreground: 210 30% 85%;
-    --muted: 220 18% 20%; 
-    --muted-foreground: 210 20% 65%; 
+    --muted: 220 18% 20%;
+    --muted-foreground: 210 20% 65%;
     --accent: 270 75% 70%; /* Brighter accent for dark mode */
     --accent-foreground: 0 0% 100%;
     --destructive: 0 75% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 15% 28%; /* Darker borders */
+    --border: 220 25% 10%; /* Match dark background to remove borders */
     --input: 220 20% 18%; /* Darker input fields */
     --input-foreground: 210 30% 90%;
     --ring: 225 70% 65%;
-    --chart-1: 225 70% 65%; 
+    --chart-1: 225 70% 65%;
     --chart-2: 170 60% 50%;
     --chart-3: 35 80% 60%;
     --chart-4: 280 65% 65%;
     --chart-5: 340 75% 60%;
 
-    /* Dark Sidebar */
-    --sidebar-background: 220 22% 8%; /* Even darker sidebar */
-    --sidebar-foreground: 210 25% 75%;
-    --sidebar-primary: 225 70% 65%; /* Active item bg (primary color) */
-    --sidebar-primary-foreground: 0 0% 100%; /* Text on active item */
-    --sidebar-accent: 220 20% 15%;     /* Hover background */
-    --sidebar-accent-foreground: 210 25% 85%;
-    --sidebar-border: 220 18% 11%;
-    --sidebar-ring: 225 70% 65%;
+    /* Modern Sidebar Colors - Dark Theme */
+    --sidebar-background: 220 20% 9%; /* Even darker sidebar */
+    --sidebar-foreground: 210 25% 80%; /* Clear light text */
+    --sidebar-accent: 225 70% 68%;     /* Vibrant blue for active/hover in dark */
+    --sidebar-accent-foreground: 0 0% 100%; /* White text for active/hover */
+    --sidebar-primary: hsl(var(--sidebar-accent));
+    --sidebar-primary-foreground: hsl(var(--sidebar-accent-foreground));
+    --sidebar-border: 220 15% 7%;      /* Very subtle darker border */
+    --sidebar-ring: 225 70% 68%;
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border; /* This will now use the background-matching border color */
   }
   body {
     @apply bg-background text-foreground font-body;
