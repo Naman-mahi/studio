@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,15 @@ interface GeneratedQuestion {
   answer: string;
   explanation?: string;
 }
+
+interface PracticeQuestionsCache {
+  subject: string;
+  topic: string;
+  numQuestions: number;
+  generatedQuestions: GeneratedQuestion[];
+}
+
+const PRACTICE_QUESTIONS_CACHE_KEY = "practice-questions-cache";
 
 const rrbNTPCSubjectsAndTopics: Record<string, string[]> = {
   "Mathematics": [
@@ -58,10 +67,50 @@ export default function PracticeQuestionsView() {
   const [numQuestions, setNumQuestions] = useState(5);
   const { toast } = useToast();
 
+  useEffect(() => {
+    try {
+      const cachedData = localStorage.getItem(PRACTICE_QUESTIONS_CACHE_KEY);
+      if (cachedData) {
+        const parsedCache: PracticeQuestionsCache = JSON.parse(cachedData);
+        setSubject(parsedCache.subject);
+        // Ensure topic is valid for the loaded subject
+        if (rrbNTPCSubjectsAndTopics[parsedCache.subject]?.includes(parsedCache.topic)) {
+          setTopic(parsedCache.topic);
+        } else {
+          setTopic(""); // Reset topic if not valid
+        }
+        setNumQuestions(parsedCache.numQuestions);
+        setGeneratedQuestions(parsedCache.generatedQuestions);
+      }
+    } catch (error) {
+      console.error("Failed to load practice questions cache from localStorage", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    const cacheData: PracticeQuestionsCache = { subject, topic, numQuestions, generatedQuestions };
+    try {
+      localStorage.setItem(PRACTICE_QUESTIONS_CACHE_KEY, JSON.stringify(cacheData));
+    } catch (error) {
+      console.error("Failed to save practice questions to localStorage", error);
+    }
+  }, [subject, topic, numQuestions, generatedQuestions]);
+
   const handleSubjectChange = (selectedSubject: string) => {
     setSubject(selectedSubject);
-    setTopic(""); // Reset topic when subject changes
+    setTopic(""); 
+    setGeneratedQuestions([]); // Clear questions when subject changes
   };
+  
+  const handleTopicChange = (selectedTopic: string) => {
+    setTopic(selectedTopic);
+    setGeneratedQuestions([]); // Clear questions when topic changes
+  };
+
+  const handleNumQuestionsChange = (value: number) => {
+    setNumQuestions(value);
+    setGeneratedQuestions([]); // Clear questions when number of questions changes
+  }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -75,7 +124,7 @@ export default function PracticeQuestionsView() {
     }
 
     setIsLoading(true);
-    setGeneratedQuestions([]);
+    // setGeneratedQuestions([]); // Keep old questions while loading new ones, or clear: user preference
 
     try {
       const output: PracticeQuestionGeneratorOutput = await generatePracticeQuestions({
@@ -99,11 +148,11 @@ export default function PracticeQuestionsView() {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-headline font-bold">Practice Question Generator</h1>
-      <Card>
+      <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="font-headline">Generate Custom Quiz</CardTitle>
           <CardDescription>
-            Select a subject, topic, and the number of questions you want to generate for your RRB NTPC 2025 practice.
+            Select a subject, topic, and the number of questions you want to generate for your RRB NTPC 2025 practice. Your selections and generated questions are cached locally.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -111,8 +160,8 @@ export default function PracticeQuestionsView() {
             <div className="grid md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="subject">Subject</Label>
-                <Select value={subject} onValueChange={handleSubjectChange} disabled={isLoading}>
-                  <SelectTrigger id="subject" suppressHydrationWarning>
+                <Select value={subject} onValueChange={handleSubjectChange} disabled={isLoading} name="subject-select">
+                  <SelectTrigger id="subject" suppressHydrationWarning className="shadow-sm">
                     <SelectValue placeholder="Select Subject" />
                   </SelectTrigger>
                   <SelectContent>
@@ -124,8 +173,8 @@ export default function PracticeQuestionsView() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="topic">Topic</Label>
-                <Select value={topic} onValueChange={setTopic} disabled={isLoading || !subject || availableTopics.length === 0}>
-                  <SelectTrigger id="topic" suppressHydrationWarning>
+                <Select value={topic} onValueChange={handleTopicChange} disabled={isLoading || !subject || availableTopics.length === 0} name="topic-select">
+                  <SelectTrigger id="topic" suppressHydrationWarning className="shadow-sm">
                     <SelectValue placeholder="Select Topic" />
                   </SelectTrigger>
                   <SelectContent>
@@ -143,10 +192,11 @@ export default function PracticeQuestionsView() {
                   min="1"
                   max="20"
                   value={numQuestions}
-                  onChange={(e) => setNumQuestions(parseInt(e.target.value, 10))}
+                  onChange={(e) => handleNumQuestionsChange(parseInt(e.target.value, 10))}
                   disabled={isLoading}
                   required
                   suppressHydrationWarning
+                  className="shadow-sm"
                 />
               </div>
             </div>
@@ -159,7 +209,7 @@ export default function PracticeQuestionsView() {
       </Card>
 
       {isLoading && (
-         <Card>
+         <Card className="shadow-lg">
           <CardContent className="pt-6 flex flex-col items-center justify-center">
             <LoadingIndicator size={48} />
             <p className="mt-4 text-muted-foreground">AI is generating questions, please wait...</p>
@@ -168,9 +218,9 @@ export default function PracticeQuestionsView() {
       )}
 
       {generatedQuestions.length > 0 && (
-        <Card>
+        <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle className="font-headline">Generated Questions</CardTitle>
+            <CardTitle className="font-headline">Generated Questions for {topic} ({subject})</CardTitle>
           </CardHeader>
           <CardContent>
             <Accordion type="single" collapsible className="w-full">
@@ -179,7 +229,7 @@ export default function PracticeQuestionsView() {
                   <AccordionTrigger className="font-semibold hover:no-underline text-left">
                     Question {index + 1}: {q.question}
                   </AccordionTrigger>
-                  <AccordionContent>
+                  <AccordionContent className="bg-background p-3 rounded-md shadow-inner">
                     <p className="font-medium text-primary mb-1">Answer: {q.answer}</p>
                     {q.explanation && (
                       <p className="text-sm text-muted-foreground mt-1">

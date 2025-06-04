@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect, type FormEvent } from "react";
@@ -17,6 +18,8 @@ interface Message {
   content: string;
 }
 
+const AI_QA_CHAT_MESSAGES_KEY = "ai-qa-chat-messages";
+
 export default function AiQaChatView() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -25,10 +28,29 @@ export default function AiQaChatView() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    try {
+      const cachedMessages = localStorage.getItem(AI_QA_CHAT_MESSAGES_KEY);
+      if (cachedMessages) {
+        setMessages(JSON.parse(cachedMessages));
+      }
+    } catch (error) {
+      console.error("Failed to load messages from localStorage", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      try {
+        localStorage.setItem(AI_QA_CHAT_MESSAGES_KEY, JSON.stringify(messages));
+      } catch (error) {
+        console.error("Failed to save messages to localStorage", error);
+        toast({ title: "Cache Error", description: "Could not save chat history locally.", variant: "destructive" });
+      }
+    }
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
     }
-  }, [messages]);
+  }, [messages, toast]);
   
   const handleSubmit = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
@@ -47,7 +69,7 @@ export default function AiQaChatView() {
       const previousMessagesForAI = messages.map(m => ({ role: m.role, content: m.content }));
       const aiResponse = await askGeneralQuestion({
         question: userMessage.content,
-        previousMessages: previousMessagesForAI,
+        previousMessages: previousMessagesForAI.slice(-10), // Send last 10 messages for context
       });
       
       const assistantMessage: Message = {
@@ -75,7 +97,7 @@ export default function AiQaChatView() {
       <Card className="flex-grow flex flex-col shadow-lg">
         <CardHeader>
           <CardTitle className="font-headline">Ask the AI Assistant</CardTitle>
-          <CardDescription>Get direct answers to your questions about RRB NTPC topics or general knowledge.</CardDescription>
+          <CardDescription>Get direct answers to your questions about RRB NTPC topics or general knowledge. Chat history is saved locally.</CardDescription>
         </CardHeader>
         <CardContent className="flex-grow flex flex-col p-0">
           <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
@@ -93,7 +115,7 @@ export default function AiQaChatView() {
                     </Avatar>
                   )}
                   <div
-                    className={`max-w-[70%] rounded-lg p-3 text-sm whitespace-pre-wrap ${
+                    className={`max-w-[70%] rounded-lg p-3 text-sm whitespace-pre-wrap shadow ${
                       message.role === "user"
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted text-muted-foreground"
@@ -113,7 +135,7 @@ export default function AiQaChatView() {
                    <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
                       <AvatarFallback><Bot size={18}/></AvatarFallback>
                     </Avatar>
-                  <div className="max-w-[70%] rounded-lg p-3 text-sm bg-muted text-muted-foreground">
+                  <div className="max-w-[70%] rounded-lg p-3 text-sm bg-muted text-muted-foreground shadow">
                     <LoadingIndicator size={20} />
                   </div>
                 </div>
@@ -128,6 +150,7 @@ export default function AiQaChatView() {
                 placeholder="Type your question..."
                 disabled={isLoading}
                 className="flex-grow"
+                suppressHydrationWarning
               />
               <Button type="submit" disabled={isLoading || !input.trim()} size="icon">
                 <Send className="h-4 w-4" />

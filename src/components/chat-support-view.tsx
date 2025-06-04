@@ -18,6 +18,8 @@ interface Message {
   content: string;
 }
 
+const CHAT_SUPPORT_MESSAGES_KEY = "chat-support-messages";
+
 export default function ChatSupportView() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -26,10 +28,29 @@ export default function ChatSupportView() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    try {
+      const cachedMessages = localStorage.getItem(CHAT_SUPPORT_MESSAGES_KEY);
+      if (cachedMessages) {
+        setMessages(JSON.parse(cachedMessages));
+      }
+    } catch (error) {
+      console.error("Failed to load messages from localStorage", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      try {
+        localStorage.setItem(CHAT_SUPPORT_MESSAGES_KEY, JSON.stringify(messages));
+      } catch (error) {
+        console.error("Failed to save messages to localStorage", error);
+        toast({ title: "Cache Error", description: "Could not save chat history locally.", variant: "destructive" });
+      }
+    }
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
     }
-  }, [messages]);
+  }, [messages, toast]);
   
   const handleSubmit = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
@@ -48,7 +69,7 @@ export default function ChatSupportView() {
       const previousMessagesForAI = messages.map(m => ({ role: m.role, content: m.content }));
       const aiResponse = await questionClarificationChat({
         question: userMessage.content,
-        previousMessages: previousMessagesForAI,
+        previousMessages: previousMessagesForAI.slice(-10), // Send last 10 messages
       });
       
       const assistantMessage: Message = {
@@ -71,12 +92,12 @@ export default function ChatSupportView() {
   };
 
   return (
-    <div className="h-[calc(100vh-10rem)] flex flex-col"> {/* Adjust height as needed */}
+    <div className="h-[calc(100vh-10rem)] flex flex-col">
       <h1 className="text-3xl font-headline font-bold mb-6">AI Chat Support</h1>
       <Card className="flex-grow flex flex-col shadow-lg">
         <CardHeader>
           <CardTitle className="font-headline">Chat with AI Tutor</CardTitle>
-          <CardDescription>Ask questions about RRB NTPC topics, clarify doubts, or discuss problems.</CardDescription>
+          <CardDescription>Ask questions about RRB NTPC topics, clarify doubts, or discuss problems. Chat history is saved locally.</CardDescription>
         </CardHeader>
         <CardContent className="flex-grow flex flex-col p-0">
           <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
@@ -94,7 +115,7 @@ export default function ChatSupportView() {
                     </Avatar>
                   )}
                   <div
-                    className={`max-w-[70%] rounded-lg p-3 text-sm ${
+                    className={`max-w-[70%] rounded-lg p-3 text-sm shadow whitespace-pre-wrap ${
                       message.role === "user"
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted text-muted-foreground"
@@ -114,7 +135,7 @@ export default function ChatSupportView() {
                    <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
                       <AvatarFallback><Bot size={18}/></AvatarFallback>
                     </Avatar>
-                  <div className="max-w-[70%] rounded-lg p-3 text-sm bg-muted text-muted-foreground">
+                  <div className="max-w-[70%] rounded-lg p-3 text-sm bg-muted text-muted-foreground shadow">
                     <LoadingIndicator size={20} />
                   </div>
                 </div>
@@ -141,4 +162,3 @@ export default function ChatSupportView() {
     </div>
   );
 }
-
