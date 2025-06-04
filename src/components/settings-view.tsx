@@ -21,8 +21,8 @@ import toast from 'react-hot-toast';
 import { Trash2 } from 'lucide-react';
 
 export const USER_LANGUAGE_PREFERENCE_KEY = 'user-language-preference';
-const CURRENT_AFFAIRS_CACHE_KEY = "current-affairs-cache"; // Ensure this is consistent if defined elsewhere
-const PRACTICE_QUESTIONS_CACHE_KEY = "practice-questions-cache"; // Ensure this is consistent
+const AI_QUIZ_GENERATOR_CACHE_KEY = "ai-quiz-generator-cache";
+const CURRENT_AFFAIRS_CACHE_KEY = "current-affairs-cache";
 const AI_SOLVER_CACHED_INPUT_KEY = "ai-solver-cached-input";
 const AI_SOLVER_CACHED_RESULT_KEY = "ai-solver-cached-result";
 const CHAT_SUPPORT_MESSAGES_KEY = "chat-support-messages";
@@ -30,6 +30,7 @@ const AI_QA_CHAT_MESSAGES_KEY = "ai-qa-chat-messages";
 const STREAK_DATA_KEY = 'studyStreakData';
 const TOPIC_AI_TUTOR_SELECTION_KEY = "topic-ai-tutor-selection";
 const TOPIC_AI_TUTOR_MESSAGES_KEY_PREFIX = "topic-ai-tutor-messages";
+const STUDY_PLANNER_CACHE_KEY = "study-planner-cache";
 
 
 const CACHE_KEYS_TO_CLEAR = [
@@ -37,11 +38,12 @@ const CACHE_KEYS_TO_CLEAR = [
   CHAT_SUPPORT_MESSAGES_KEY,
   AI_SOLVER_CACHED_INPUT_KEY,
   AI_SOLVER_CACHED_RESULT_KEY,
-  PRACTICE_QUESTIONS_CACHE_KEY,
+  AI_QUIZ_GENERATOR_CACHE_KEY,
   CURRENT_AFFAIRS_CACHE_KEY,
   STREAK_DATA_KEY,
   TOPIC_AI_TUTOR_SELECTION_KEY,
   USER_LANGUAGE_PREFERENCE_KEY,
+  STUDY_PLANNER_CACHE_KEY,
 ];
 
 
@@ -75,6 +77,8 @@ export default function SettingsView() {
     setSelectedLanguage(newLanguage);
     localStorage.setItem(USER_LANGUAGE_PREFERENCE_KEY, newLanguage);
     toast.success(`AI language preference updated to ${supportedLanguages.find(l => l.code === newLanguage)?.name || newLanguage}.`);
+    // Optionally, notify user that existing cached AI content in other languages might need regeneration
+    // or that the page might need a refresh for some components to pick up the new language for new AI requests.
   };
 
   const handleClearCache = () => {
@@ -98,7 +102,7 @@ export default function SettingsView() {
       if (clearedCount > 0) {
         toast.success("All locally stored application data has been cleared.");
       } else {
-        toast("No cached data found to clear.");
+        toast.info("No cached data found to clear.");
       }
     } catch (error) {
       console.error("Failed to clear cache:", error);

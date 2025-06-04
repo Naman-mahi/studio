@@ -4,7 +4,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Cpu, ListChecks, MessagesSquare, NotebookText, MessageCircleQuestion, Newspaper, Settings, GraduationCap } from "lucide-react";
+import { Cpu, ListChecks, MessagesSquare, NotebookText, MessageCircleQuestion, Newspaper, Settings, GraduationCap, CalendarCheck } from "lucide-react";
 import StudyStreakTracker from "@/components/study-streak-tracker";
 
 const featureCardColors = [
@@ -15,6 +15,8 @@ const featureCardColors = [
   "bg-amber-500 text-black",
   "bg-teal-600 text-white",
   "bg-indigo-600 text-white",
+  "bg-pink-600 text-white", // Added new color for Study Planner
+  "bg-cyan-600 text-white",
   "bg-slate-600 text-white",
 ];
 
@@ -52,13 +54,14 @@ function FeatureCard({ icon: Icon, title, description, linkHref, linkText, bgCol
 
 export default function DashboardPage() {
   const features = [
+    { icon: CalendarCheck, title: "Study Planner", description: "Generate a personalized study roadmap for your exam preparation.", linkHref: "/study-planner", linkText: "Create Plan", titleForColorBox: "AI Planner" },
     { icon: ListChecks, title: "AI Quiz Generator", description: "Generate custom quizzes with varying difficulty based on specific RRB NTPC topics.", linkHref: "/ai-quiz-generator", linkText: "Create Quiz", titleForColorBox: "AI Quiz" },
     { icon: Cpu, title: "AI Question Solver", description: "Upload question papers and get AI-powered solutions and answer keys.", linkHref: "/ai-solver", linkText: "Try AI Solver", titleForColorBox: "AI Solver" },
     { icon: GraduationCap, title: "Topic AI Tutor", description: "Select a subject & topic for focused AI guidance and clarification.", linkHref: "/topic-ai-tutor", linkText: "Start Session", titleForColorBox: "Topic Tutor" },
     { icon: MessageCircleQuestion, title: "AI Q&A Assistant", description: "Get quick answers to your general knowledge and exam-related queries.", linkHref: "/ai-qa-chat", linkText: "Ask AI", titleForColorBox: "AI Q&A" },
     { icon: MessagesSquare, title: "Chat Support (General)", description: "Engage with our AI for general question clarification and discussion.", linkHref: "/chat-support", linkText: "Start Chatting", titleForColorBox: "General AI Chat" },
-    { icon: NotebookText, title: "Past Papers", description: "Review previous RRB NTPC exam papers to understand patterns.", linkHref: "/past-papers", linkText: "Explore Papers", titleForColorBox: "Past Papers" },
     { icon: Newspaper, title: "Current Affairs", description: "Stay updated with the latest current events relevant for your exams.", linkHref: "/current-affairs", linkText: "Get Updates", titleForColorBox: "Current Affairs" },
+    { icon: NotebookText, title: "Past Papers", description: "Review previous RRB NTPC exam papers to understand patterns.", linkHref: "/past-papers", linkText: "Explore Papers", titleForColorBox: "Past Papers" },
     { icon: Settings, title: "Settings", description: "Customize your application experience, like AI language preference and clear cached data.", linkHref: "/settings", linkText: "Go to Settings", titleForColorBox: "Settings" },
   ];
 
@@ -74,15 +77,15 @@ export default function DashboardPage() {
           </div>
         </div>
          <p className="text-muted-foreground mb-6 text-sm">
-          Set daily goals, access past papers, get AI-powered solutions,
+          Generate study plans, create custom quizzes, set daily goals, access past papers, get AI-powered solutions,
           clarify doubts with our chat support, and generate practice questions tailored to your needs.
         </p>
         <div className="flex flex-wrap gap-3 sm:gap-4">
           <Button asChild size="lg" className="shadow-md hover:shadow-lg transition-shadow bg-primary hover:bg-primary/90 text-primary-foreground">
-            <Link href="/ai-quiz-generator">Create Custom Quiz</Link>
+            <Link href="/study-planner">Create Study Plan</Link>
           </Button>
            <Button asChild variant="secondary" size="lg" className="shadow-md hover:shadow-lg transition-shadow">
-            <Link href="/current-affairs">Read Current Affairs</Link>
+            <Link href="/ai-quiz-generator">Generate Quiz</Link>
           </Button>
         </div>
       </section>
@@ -109,4 +112,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-

@@ -1,6 +1,6 @@
 
 import type { LucideIcon } from 'lucide-react';
-import { LayoutDashboard, NotebookText, Cpu, MessagesSquare, ListChecks, MessageCircleQuestion, Newspaper, GraduationCap, Settings } from 'lucide-react';
+import { LayoutDashboard, NotebookText, Cpu, MessagesSquare, ListChecks, MessageCircleQuestion, Newspaper, GraduationCap, Settings, CalendarCheck } from 'lucide-react';
 
 export type NavItem = {
   title: string;
@@ -16,19 +16,19 @@ export const navItems: NavItem[] = [
     icon: LayoutDashboard,
   },
   {
-    title: 'Past Papers',
-    href: '/past-papers',
-    icon: NotebookText,
-  },
-  {
-    title: 'AI Solver',
-    href: '/ai-solver',
-    icon: Cpu,
+    title: 'Study Planner',
+    href: '/study-planner',
+    icon: CalendarCheck,
   },
   {
     title: 'AI Quiz Generator',
     href: '/ai-quiz-generator',
     icon: ListChecks,
+  },
+  {
+    title: 'AI Question Solver',
+    href: '/ai-solver',
+    icon: Cpu,
   },
   {
     title: 'Topic AI Tutor',
@@ -51,9 +51,13 @@ export const navItems: NavItem[] = [
     icon: Newspaper,
   },
   {
+    title: 'Past Papers',
+    href: '/past-papers',
+    icon: NotebookText,
+  },
+  {
     title: 'Settings',
     href: '/settings',
     icon: Settings,
   },
 ];
-
