@@ -1,3 +1,4 @@
+
 // src/ai/flows/practice-question-generator.ts
 'use server';
 
@@ -25,8 +26,9 @@ const PracticeQuestionGeneratorOutputSchema = z.object({
     z.object({
       question: z.string().describe('The practice question.'),
       answer: z.string().describe('The answer to the practice question.'),
+      explanation: z.string().optional().describe('A brief explanation for the correct answer, clarifying why it is correct.'),
     })
-  ).describe('An array of practice questions and their corresponding answers.'),
+  ).describe('An array of practice questions, their corresponding answers, and explanations.'),
 });
 
 export type PracticeQuestionGeneratorOutput = z.infer<typeof PracticeQuestionGeneratorOutputSchema>;
@@ -39,19 +41,24 @@ const practiceQuestionPrompt = ai.definePrompt({
   name: 'practiceQuestionPrompt',
   input: {schema: PracticeQuestionGeneratorInputSchema},
   output: {schema: PracticeQuestionGeneratorOutputSchema},
-  prompt: `You are an expert in generating practice questions for the RRB NTPC exam.
+  prompt: `You are an expert in generating practice questions for the RRB NTPC 2025 exam.
 
-  Generate {{{numQuestions}}} practice questions and their answers based on the specified topic and subject.
+  Generate {{{numQuestions}}} practice questions, their answers, and concise explanations based on the specified topic and subject.
+  The questions should be relevant for the RRB NTPC 2025 Exams.
 
   Topic: {{{topic}}}
   Subject: {{{subject}}}
 
-  Format the output as a JSON array of question and answer pairs.  The question and answer should be plain text, not markdown.
+  Format the output as a JSON array of question, answer, and explanation pairs.
+  The question, answer, and explanation should be plain text, not markdown.
+  The explanation should clarify why the answer is correct.
+
   {
     "questions": [
       {
         "question": "...",
-        "answer": "..."
+        "answer": "...",
+        "explanation": "..."
       }
     ]
   }`,
