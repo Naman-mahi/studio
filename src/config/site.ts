@@ -1,6 +1,6 @@
 
 import type { LucideIcon } from 'lucide-react';
-import { LayoutDashboard, NotebookText, Cpu, MessagesSquare, ListChecks, MessageCircleQuestion, Newspaper, GraduationCap, Settings, CalendarCheck, Copy, Bookmark } from 'lucide-react';
+import { LayoutDashboard, NotebookText, Cpu, MessagesSquare, ListChecks, MessageCircleQuestion, Newspaper, GraduationCap, Settings, CalendarCheck, Copy, Bookmark, BarChartHorizontalBig, Award } from 'lucide-react';
 
 export type NavItem = {
   title: string;
@@ -61,6 +61,11 @@ export const navItems: NavItem[] = [
     icon: NotebookText,
   },
   {
+    title: 'Quiz History',
+    href: '/quiz-history',
+    icon: BarChartHorizontalBig,
+  },
+  {
     title: 'Bookmarks',
     href: '/bookmarks',
     icon: Bookmark,
@@ -71,3 +76,4 @@ export const navItems: NavItem[] = [
     icon: Settings,
   },
 ];
+
