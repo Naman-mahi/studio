@@ -32,6 +32,7 @@ const TOPIC_AI_TUTOR_SELECTION_KEY = "topic-ai-tutor-selection";
 const TOPIC_AI_TUTOR_MESSAGES_KEY_PREFIX = "topic-ai-tutor-messages";
 const STUDY_PLANNER_CACHE_KEY = "study-planner-cache";
 const FLASHCARD_GENERATOR_CACHE_KEY = "flashcard-generator-cache";
+const BOOKMARKS_KEY = 'prepPalAiBookmarks';
 
 
 const CACHE_KEYS_TO_CLEAR = [
@@ -43,9 +44,10 @@ const CACHE_KEYS_TO_CLEAR = [
   CURRENT_AFFAIRS_CACHE_KEY,
   STREAK_DATA_KEY,
   TOPIC_AI_TUTOR_SELECTION_KEY,
-  USER_LANGUAGE_PREFERENCE_KEY,
+  USER_LANGUAGE_PREFERENCE_KEY, // Also clear language preference as it's part of app data
   STUDY_PLANNER_CACHE_KEY,
   FLASHCARD_GENERATOR_CACHE_KEY,
+  BOOKMARKS_KEY,
 ];
 
 
@@ -79,8 +81,6 @@ export default function SettingsView() {
     setSelectedLanguage(newLanguage);
     localStorage.setItem(USER_LANGUAGE_PREFERENCE_KEY, newLanguage);
     toast.success(`AI language preference updated to ${supportedLanguages.find(l => l.code === newLanguage)?.name || newLanguage}.`);
-    // Optionally, notify user that existing cached AI content in other languages might need regeneration
-    // or that the page might need a refresh for some components to pick up the new language for new AI requests.
   };
 
   const handleClearCache = () => {
@@ -93,7 +93,6 @@ export default function SettingsView() {
         }
       });
 
-      // Clear topic tutor messages which are stored with dynamic keys
       Object.keys(localStorage).forEach(key => {
         if (key.startsWith(TOPIC_AI_TUTOR_MESSAGES_KEY_PREFIX + "-")) {
           localStorage.removeItem(key);
@@ -111,8 +110,8 @@ export default function SettingsView() {
       toast.error("Could not clear all cached data. Please try again.");
     }
     setIsAlertOpen(false);
-    // Optionally, reload or notify user that some changes might require a refresh or re-interaction
-    window.location.reload(); // Reload to ensure all components re-fetch or reset their state
+    // Reload to ensure all components re-fetch or reset their state and language preference takes full effect.
+    window.location.reload(); 
   };
 
 
@@ -169,7 +168,7 @@ export default function SettingsView() {
         <CardHeader>
           <CardTitle className="font-headline">Manage Application Data</CardTitle>
           <CardDescription>
-            Clear all locally cached data from this application in your browser. This includes chat histories, saved inputs, generated content, study streak progress, topic selections, and language preferences.
+            Clear all locally cached data from this application in your browser. This includes chat histories, saved inputs, generated content, study streak progress, topic selections, language preferences, and bookmarks.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -183,7 +182,7 @@ export default function SettingsView() {
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action will permanently delete all cached application data stored in your browser. This cannot be undone.
+                  This action will permanently delete all cached application data stored in your browser, including your language preference. This cannot be undone. The page will reload after clearing.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

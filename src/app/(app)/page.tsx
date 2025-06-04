@@ -4,7 +4,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Cpu, ListChecks, MessagesSquare, NotebookText, MessageCircleQuestion, Newspaper, Settings, GraduationCap, CalendarCheck, Copy } from "lucide-react";
+import { Cpu, ListChecks, MessagesSquare, NotebookText, MessageCircleQuestion, Newspaper, Settings, GraduationCap, CalendarCheck, Copy, Bookmark as BookmarkIcon } from "lucide-react";
 import StudyStreakTracker from "@/components/study-streak-tracker";
 
 const featureCardColors = [
@@ -16,8 +16,9 @@ const featureCardColors = [
   "bg-teal-600 text-white",
   "bg-indigo-600 text-white",
   "bg-pink-600 text-white", 
-  "bg-cyan-600 text-white", // New color for AI Flashcards
-  "bg-lime-500 text-black", // New color for Study Planner
+  "bg-cyan-600 text-white", 
+  "bg-lime-500 text-black", 
+  "bg-orange-500 text-black", // New color for Bookmarks
   "bg-slate-600 text-white",
 ];
 
@@ -64,6 +65,7 @@ export default function DashboardPage() {
     { icon: MessagesSquare, title: "Chat Support (General)", description: "Engage with our AI for general question clarification and discussion.", linkHref: "/chat-support", linkText: "Start Chatting", titleForColorBox: "General AI Chat" },
     { icon: Newspaper, title: "Current Affairs", description: "Stay updated with the latest current events relevant for your exams.", linkHref: "/current-affairs", linkText: "Get Updates", titleForColorBox: "Current Affairs" },
     { icon: NotebookText, title: "Past Papers", description: "Review previous RRB NTPC exam papers to understand patterns.", linkHref: "/past-papers", linkText: "Explore Papers", titleForColorBox: "Past Papers" },
+    { icon: BookmarkIcon, title: "Bookmarks", description: "Review your saved AI chat responses and important notes.", linkHref: "/bookmarks", linkText: "View Bookmarks", titleForColorBox: "My Bookmarks" },
     { icon: Settings, title: "Settings", description: "Customize your application experience, like AI language preference and clear cached data.", linkHref: "/settings", linkText: "Go to Settings", titleForColorBox: "Settings" },
   ];
 
@@ -80,7 +82,7 @@ export default function DashboardPage() {
         </div>
          <p className="text-muted-foreground mb-6 text-sm">
           Generate study plans, create custom quizzes, generate flashcards, set daily goals, access past papers, get AI-powered solutions,
-          clarify doubts with our chat support, and generate practice questions tailored to your needs.
+          clarify doubts with our chat support, bookmark important conversations, and generate practice questions tailored to your needs.
         </p>
         <div className="flex flex-wrap gap-3 sm:gap-4">
           <Button asChild size="lg" className="shadow-md hover:shadow-lg transition-shadow bg-primary hover:bg-primary/90 text-primary-foreground">

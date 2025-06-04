@@ -1,6 +1,6 @@
 
 import type { LucideIcon } from 'lucide-react';
-import { LayoutDashboard, NotebookText, Cpu, MessagesSquare, ListChecks, MessageCircleQuestion, Newspaper, GraduationCap, Settings, CalendarCheck, Layers, Copy } from 'lucide-react';
+import { LayoutDashboard, NotebookText, Cpu, MessagesSquare, ListChecks, MessageCircleQuestion, Newspaper, GraduationCap, Settings, CalendarCheck, Copy, Bookmark } from 'lucide-react';
 
 export type NavItem = {
   title: string;
@@ -28,7 +28,7 @@ export const navItems: NavItem[] = [
   {
     title: 'AI Flashcards',
     href: '/flashcards',
-    icon: Copy, // Using Copy icon for flashcards
+    icon: Copy,
   },
   {
     title: 'AI Question Solver',
@@ -59,6 +59,11 @@ export const navItems: NavItem[] = [
     title: 'Past Papers',
     href: '/past-papers',
     icon: NotebookText,
+  },
+  {
+    title: 'Bookmarks',
+    href: '/bookmarks',
+    icon: Bookmark,
   },
   {
     title: 'Settings',

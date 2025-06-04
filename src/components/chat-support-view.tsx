@@ -9,9 +9,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { questionClarificationChat } from "@/app/(app)/chat-support/actions";
 import toast from 'react-hot-toast';
-import { Send, User, Bot } from "lucide-react";
+import { Send, User, Bot, Bookmark } from "lucide-react"; // Added Bookmark
 import { LoadingIndicator } from "@/components/loading-indicator";
-import { getStoredLanguage } from "./settings-view"; // Import language utility
+import { getStoredLanguage } from "./settings-view";
+import { getBookmarks, addBookmark, removeBookmark, isMessageBookmarked, findBookmarkId, type BookmarkedMessage } from "@/lib/bookmarks";
+
 
 interface Message {
   id: string;
@@ -20,6 +22,7 @@ interface Message {
 }
 
 const CHAT_SUPPORT_MESSAGES_KEY = "chat-support-messages";
+const CHAT_SOURCE = "Chat Support (General)";
 
 export default function ChatSupportView() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -27,9 +30,11 @@ export default function ChatSupportView() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [currentLanguage, setCurrentLanguage] = useState('en');
+  const [bookmarks, setBookmarks] = useState<BookmarkedMessage[]>([]);
 
   useEffect(() => {
     setCurrentLanguage(getStoredLanguage());
+    setBookmarks(getBookmarks());
     try {
       const cachedMessages = localStorage.getItem(CHAT_SUPPORT_MESSAGES_KEY);
       if (cachedMessages) {
@@ -41,15 +46,19 @@ export default function ChatSupportView() {
   }, []);
 
   useEffect(() => {
-     // Update language if it changes in settings
     const handleStorageChange = () => {
       setCurrentLanguage(getStoredLanguage());
+      setBookmarks(getBookmarks());
     };
     window.addEventListener('storage', handleStorageChange);
      const interval = setInterval(() => {
         const lang = getStoredLanguage();
         if (lang !== currentLanguage) {
             setCurrentLanguage(lang);
+        }
+        const currentStoredBookmarks = getBookmarks();
+        if (JSON.stringify(currentStoredBookmarks) !== JSON.stringify(bookmarks)) {
+            setBookmarks(currentStoredBookmarks);
         }
     }, 1000);
 
@@ -68,8 +77,20 @@ export default function ChatSupportView() {
         window.removeEventListener('storage', handleStorageChange);
         clearInterval(interval);
     }
-  }, [messages, currentLanguage]);
+  }, [messages, currentLanguage, bookmarks]);
   
+  const handleToggleBookmark = (message: Message) => {
+    if (message.role !== 'assistant') return;
+    const alreadyBookmarkedId = findBookmarkId(message.id, CHAT_SOURCE);
+    if (alreadyBookmarkedId) {
+      setBookmarks(removeBookmark(alreadyBookmarkedId));
+      toast.success("Bookmark removed");
+    } else {
+      setBookmarks(addBookmark(message, messages, CHAT_SOURCE));
+      toast.success("Message bookmarked!");
+    }
+  };
+
   const handleSubmit = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
     if (!input.trim()) return;
@@ -79,14 +100,14 @@ export default function ChatSupportView() {
       role: "user",
       content: input,
     };
-    setMessages((prev) => [...prev, userMessage]);
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setInput("");
     setIsLoading(true);
 
     try {
-      const previousMessagesForAI = messages.map(m => ({ role: m.role, content: m.content }));
+      const previousMessagesForAI = updatedMessages.map(m => ({ role: m.role, content: m.content }));
       const lang = getStoredLanguage();
-      // For general chat support, we don't pass subject or topic.
       const aiResponse = await questionClarificationChat({
         question: userMessage.content,
         previousMessages: previousMessagesForAI.slice(-10), 
@@ -118,7 +139,7 @@ export default function ChatSupportView() {
       <Card className="flex-grow flex flex-col shadow-lg animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ease-out">
         <CardHeader>
           <CardTitle className="font-headline">Chat with General AI Tutor</CardTitle>
-          <CardDescription>Ask general questions about RRB NTPC topics, clarify doubts, or discuss problems. Chat history is saved locally. AI responses will attempt to use your preferred language setting.</CardDescription>
+          <CardDescription>Ask general questions about RRB NTPC topics, clarify doubts, or discuss problems. Chat history is saved locally. AI responses will attempt to use your preferred language setting. You can bookmark helpful AI responses.</CardDescription>
         </CardHeader>
         <CardContent className="flex-grow flex flex-col p-0">
           <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
@@ -126,7 +147,7 @@ export default function ChatSupportView() {
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex items-end gap-2 ${
+                  className={`flex items-end gap-2 group ${
                     message.role === "user" ? "justify-end" : ""
                   }`}
                 >
@@ -148,6 +169,17 @@ export default function ChatSupportView() {
                      <Avatar className="h-8 w-8 bg-accent text-accent-foreground shadow-sm">
                        <AvatarFallback><User size={18}/></AvatarFallback>
                      </Avatar>
+                  )}
+                  {message.role === "assistant" && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 p-1 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity"
+                      onClick={() => handleToggleBookmark(message)}
+                      title={isMessageBookmarked(message.id, CHAT_SOURCE) ? "Remove bookmark" : "Bookmark message"}
+                    >
+                      <Bookmark className={`h-4 w-4 ${isMessageBookmarked(message.id, CHAT_SOURCE) ? 'fill-yellow-400 text-yellow-500' : ''}`} />
+                    </Button>
                   )}
                 </div>
               ))}

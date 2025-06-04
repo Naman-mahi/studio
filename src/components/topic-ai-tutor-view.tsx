@@ -11,10 +11,12 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { askTopicTutor } from "@/app/(app)/topic-ai-tutor/actions";
 import toast from 'react-hot-toast';
-import { Send, User, Bot, GraduationCap } from "lucide-react";
+import { Send, User, Bot, GraduationCap, Bookmark } from "lucide-react"; // Added Bookmark
 import { LoadingIndicator } from "@/components/loading-indicator";
 import type { QuestionClarificationChatInput } from '@/ai/flows/question-clarification-chat';
-import { getStoredLanguage } from "./settings-view"; // Import language utility
+import { getStoredLanguage } from "./settings-view";
+import { getBookmarks, addBookmark, removeBookmark, isMessageBookmarked, findBookmarkId, type BookmarkedMessage } from "@/lib/bookmarks";
+
 
 interface Message {
   id: string;
@@ -24,6 +26,8 @@ interface Message {
 
 const TOPIC_AI_TUTOR_MESSAGES_KEY_PREFIX = "topic-ai-tutor-messages";
 const TOPIC_AI_TUTOR_SELECTION_KEY = "topic-ai-tutor-selection";
+const CHAT_SOURCE = "Topic AI Tutor";
+
 
 const rrbNTPCSubjectsAndTopics: Record<string, string[]> = {
   "Mathematics": [
@@ -68,16 +72,18 @@ export default function TopicAiTutorView() {
   const [topic, setTopic] = useState("");
   const [isTopicSelected, setIsTopicSelected] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState('en');
+  const [bookmarks, setBookmarks] = useState<BookmarkedMessage[]>([]);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  const getCacheKey = (currentSubject: string, currentTopic: string) => {
+  const getMessageCacheKey = (currentSubject: string, currentTopic: string) => {
     if (!currentSubject || !currentTopic) return null;
     return `${TOPIC_AI_TUTOR_MESSAGES_KEY_PREFIX}-${currentSubject.replace(/\s+/g, '_')}-${currentTopic.replace(/\s+/g, '_')}`;
   };
 
   useEffect(() => {
     setCurrentLanguage(getStoredLanguage());
+    setBookmarks(getBookmarks());
     try {
       const cachedSelection = localStorage.getItem(TOPIC_AI_TUTOR_SELECTION_KEY);
       if (cachedSelection) {
@@ -86,7 +92,7 @@ export default function TopicAiTutorView() {
           setSubject(cachedSubject);
           setTopic(cachedTopic);
           setIsTopicSelected(true);
-          const messageCacheKey = getCacheKey(cachedSubject, cachedTopic);
+          const messageCacheKey = getMessageCacheKey(cachedSubject, cachedTopic);
           if (messageCacheKey) {
             const cachedMessages = localStorage.getItem(messageCacheKey);
             if (cachedMessages) setMessages(JSON.parse(cachedMessages));
@@ -103,6 +109,7 @@ export default function TopicAiTutorView() {
   useEffect(() => {
     const handleStorageChange = () => {
       setCurrentLanguage(getStoredLanguage());
+      setBookmarks(getBookmarks());
     };
     window.addEventListener('storage', handleStorageChange);
     const interval = setInterval(() => {
@@ -110,13 +117,17 @@ export default function TopicAiTutorView() {
         if (lang !== currentLanguage) {
             setCurrentLanguage(lang);
         }
+        const currentStoredBookmarks = getBookmarks();
+        if (JSON.stringify(currentStoredBookmarks) !== JSON.stringify(bookmarks)) {
+            setBookmarks(currentStoredBookmarks);
+        }
     }, 1000);
 
     if (isTopicSelected && subject && topic) {
       const selectionCache: TutorSelection = { subject, topic };
       localStorage.setItem(TOPIC_AI_TUTOR_SELECTION_KEY, JSON.stringify(selectionCache));
       
-      const messageCacheKey = getCacheKey(subject, topic);
+      const messageCacheKey = getMessageCacheKey(subject, topic);
       if (messageCacheKey && messages.length > 0) {
         localStorage.setItem(messageCacheKey, JSON.stringify(messages));
       } else if (messageCacheKey && messages.length === 0) {
@@ -130,10 +141,10 @@ export default function TopicAiTutorView() {
         window.removeEventListener('storage', handleStorageChange);
         clearInterval(interval);
     }
-  }, [messages, subject, topic, isTopicSelected, currentLanguage]);
+  }, [messages, subject, topic, isTopicSelected, currentLanguage, bookmarks]);
 
   const handleSubjectChange = (selectedSubject: string) => {
-    const oldMessageCacheKey = getCacheKey(subject, topic);
+    const oldMessageCacheKey = getMessageCacheKey(subject, topic);
     if(oldMessageCacheKey) localStorage.removeItem(oldMessageCacheKey);
 
     setSubject(selectedSubject);
@@ -143,7 +154,7 @@ export default function TopicAiTutorView() {
   };
   
   const handleTopicChange = (selectedTopic: string) => {
-    const oldMessageCacheKey = getCacheKey(subject, topic);
+    const oldMessageCacheKey = getMessageCacheKey(subject, topic);
     if(oldMessageCacheKey && topic !== selectedTopic) localStorage.removeItem(oldMessageCacheKey);
     
     setTopic(selectedTopic);
@@ -157,10 +168,22 @@ export default function TopicAiTutorView() {
       return;
     }
     setIsTopicSelected(true);
-    const messageCacheKey = getCacheKey(subject, topic);
+    const messageCacheKey = getMessageCacheKey(subject, topic);
     if (messageCacheKey) {
         const cachedMessages = localStorage.getItem(messageCacheKey);
         setMessages(cachedMessages ? JSON.parse(cachedMessages) : []);
+    }
+  };
+
+  const handleToggleBookmark = (message: Message) => {
+    if (message.role !== 'assistant') return;
+    const alreadyBookmarkedId = findBookmarkId(message.id, CHAT_SOURCE);
+    if (alreadyBookmarkedId) {
+      setBookmarks(removeBookmark(alreadyBookmarkedId));
+      toast.success("Bookmark removed");
+    } else {
+      setBookmarks(addBookmark(message, messages, CHAT_SOURCE, { subject, topic }));
+      toast.success("Message bookmarked!");
     }
   };
 
@@ -169,12 +192,13 @@ export default function TopicAiTutorView() {
     if (!input.trim() || !isTopicSelected) return;
 
     const userMessage: Message = { id: Date.now().toString(), role: "user", content: input };
-    setMessages((prev) => [...prev, userMessage]);
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setInput("");
     setIsLoading(true);
 
     try {
-      const previousMessagesForAI = messages.map(m => ({ role: m.role, content: m.content }));
+      const previousMessagesForAI = updatedMessages.map(m => ({ role: m.role, content: m.content }));
       const lang = getStoredLanguage();
       const payload: QuestionClarificationChatInput = {
         question: userMessage.content,
@@ -206,7 +230,7 @@ export default function TopicAiTutorView() {
         <Card className="shadow-lg animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ease-out">
           <CardHeader>
             <CardTitle className="font-headline">Select Subject and Topic</CardTitle>
-            <CardDescription>Choose a subject and topic to start a focused tutoring session. AI responses will attempt to use your preferred language setting.</CardDescription>
+            <CardDescription>Choose a subject and topic to start a focused tutoring session. AI responses will attempt to use your preferred language setting. You can bookmark helpful AI responses.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
@@ -248,7 +272,7 @@ export default function TopicAiTutorView() {
             <div className="flex justify-between items-start">
                 <div>
                     <CardTitle className="font-headline">AI Tutor: {topic} ({subject})</CardTitle>
-                    <CardDescription>Ask questions about {topic}. The AI will guide you. AI responses will attempt to use your preferred language setting.</CardDescription>
+                    <CardDescription>Ask questions about {topic}. The AI will guide you. AI responses will attempt to use your preferred language setting. You can bookmark helpful AI responses.</CardDescription>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => {
                     setIsTopicSelected(false);
@@ -261,7 +285,7 @@ export default function TopicAiTutorView() {
             <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
               <div className="space-y-4">
                 {messages.map((message) => (
-                  <div key={message.id} className={`flex items-end gap-2 ${message.role === "user" ? "justify-end" : ""}`}>
+                  <div key={message.id} className={`flex items-end gap-2 group ${message.role === "user" ? "justify-end" : ""}`}>
                     {message.role === "assistant" && (
                       <Avatar className="h-8 w-8 bg-primary text-primary-foreground shadow-sm">
                         <AvatarFallback><Bot size={18}/></AvatarFallback>
@@ -274,6 +298,17 @@ export default function TopicAiTutorView() {
                        <Avatar className="h-8 w-8 bg-accent text-accent-foreground shadow-sm">
                          <AvatarFallback><User size={18}/></AvatarFallback>
                        </Avatar>
+                    )}
+                    {message.role === "assistant" && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 p-1 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity"
+                        onClick={() => handleToggleBookmark(message)}
+                        title={isMessageBookmarked(message.id, CHAT_SOURCE) ? "Remove bookmark" : "Bookmark message"}
+                      >
+                        <Bookmark className={`h-4 w-4 ${isMessageBookmarked(message.id, CHAT_SOURCE) ? 'fill-yellow-400 text-yellow-500' : ''}`} />
+                      </Button>
                     )}
                   </div>
                 ))}

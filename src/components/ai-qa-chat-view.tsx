@@ -9,9 +9,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { askGeneralQuestion } from "@/app/(app)/ai-qa-chat/actions";
 import toast from 'react-hot-toast';
-import { Send, User, Bot } from "lucide-react";
+import { Send, User, Bot, Bookmark } from "lucide-react"; // Added Bookmark
 import { LoadingIndicator } from "@/components/loading-indicator";
-import { getStoredLanguage } from "./settings-view"; // Import language utility
+import { getStoredLanguage } from "./settings-view";
+import { getBookmarks, addBookmark, removeBookmark, isMessageBookmarked, findBookmarkId, type BookmarkedMessage } from "@/lib/bookmarks";
+
 
 interface Message {
   id: string;
@@ -20,6 +22,7 @@ interface Message {
 }
 
 const AI_QA_CHAT_MESSAGES_KEY = "ai-qa-chat-messages";
+const CHAT_SOURCE = "AI Q&A Chat";
 
 export default function AiQaChatView() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -27,9 +30,11 @@ export default function AiQaChatView() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [currentLanguage, setCurrentLanguage] = useState('en');
+  const [bookmarks, setBookmarks] = useState<BookmarkedMessage[]>([]);
 
   useEffect(() => {
     setCurrentLanguage(getStoredLanguage());
+    setBookmarks(getBookmarks());
     try {
       const cachedMessages = localStorage.getItem(AI_QA_CHAT_MESSAGES_KEY);
       if (cachedMessages) {
@@ -41,17 +46,21 @@ export default function AiQaChatView() {
   }, []);
 
   useEffect(() => {
-    // Update language if it changes in settings
     const handleStorageChange = () => {
       setCurrentLanguage(getStoredLanguage());
+      setBookmarks(getBookmarks()); // Update bookmarks if they change in another tab
     };
-    window.addEventListener('storage', handleStorageChange); // Listen for changes from other tabs
+    window.addEventListener('storage', handleStorageChange); 
     
-    // Also update if this specific key changes
     const interval = setInterval(() => {
         const lang = getStoredLanguage();
         if (lang !== currentLanguage) {
             setCurrentLanguage(lang);
+        }
+        // Periodically check for bookmark changes from other tabs/components
+        const currentStoredBookmarks = getBookmarks();
+        if (JSON.stringify(currentStoredBookmarks) !== JSON.stringify(bookmarks)) {
+            setBookmarks(currentStoredBookmarks);
         }
     }, 1000);
 
@@ -71,8 +80,20 @@ export default function AiQaChatView() {
         window.removeEventListener('storage', handleStorageChange);
         clearInterval(interval);
     }
-  }, [messages, currentLanguage]);
+  }, [messages, currentLanguage, bookmarks]);
   
+  const handleToggleBookmark = (message: Message) => {
+    if (message.role !== 'assistant') return;
+    const alreadyBookmarkedId = findBookmarkId(message.id, CHAT_SOURCE);
+    if (alreadyBookmarkedId) {
+      setBookmarks(removeBookmark(alreadyBookmarkedId));
+      toast.success("Bookmark removed");
+    } else {
+      setBookmarks(addBookmark(message, messages, CHAT_SOURCE));
+      toast.success("Message bookmarked!");
+    }
+  };
+
   const handleSubmit = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
     if (!input.trim()) return;
@@ -82,16 +103,17 @@ export default function AiQaChatView() {
       role: "user",
       content: input,
     };
-    setMessages((prev) => [...prev, userMessage]);
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setInput("");
     setIsLoading(true);
 
     try {
-      const previousMessagesForAI = messages.map(m => ({ role: m.role, content: m.content }));
-      const lang = getStoredLanguage(); // Get latest language at time of sending
+      const previousMessagesForAI = updatedMessages.map(m => ({ role: m.role, content: m.content }));
+      const lang = getStoredLanguage(); 
       const aiResponse = await askGeneralQuestion({
         question: userMessage.content,
-        previousMessages: previousMessagesForAI.slice(-10), // Send last 10 messages for context
+        previousMessages: previousMessagesForAI.slice(-10), 
         language: lang,
       });
       
@@ -120,7 +142,7 @@ export default function AiQaChatView() {
       <Card className="flex-grow flex flex-col shadow-lg animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ease-out">
         <CardHeader>
           <CardTitle className="font-headline">Ask the AI Assistant</CardTitle>
-          <CardDescription>Get direct answers to your questions about RRB NTPC topics or general knowledge. Chat history is saved locally. AI responses will attempt to use your preferred language setting.</CardDescription>
+          <CardDescription>Get direct answers to your questions about RRB NTPC topics or general knowledge. Chat history is saved locally. AI responses will attempt to use your preferred language setting. You can bookmark helpful AI responses.</CardDescription>
         </CardHeader>
         <CardContent className="flex-grow flex flex-col p-0">
           <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
@@ -128,7 +150,7 @@ export default function AiQaChatView() {
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex items-end gap-2 ${
+                  className={`flex items-end gap-2 group ${ // Added group for hover effect on bookmark
                     message.role === "user" ? "justify-end" : ""
                   }`}
                 >
@@ -150,6 +172,17 @@ export default function AiQaChatView() {
                      <Avatar className="h-8 w-8 bg-accent text-accent-foreground shadow-sm">
                        <AvatarFallback><User size={18}/></AvatarFallback>
                      </Avatar>
+                  )}
+                   {message.role === "assistant" && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 p-1 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity"
+                      onClick={() => handleToggleBookmark(message)}
+                      title={isMessageBookmarked(message.id, CHAT_SOURCE) ? "Remove bookmark" : "Bookmark message"}
+                    >
+                      <Bookmark className={`h-4 w-4 ${isMessageBookmarked(message.id, CHAT_SOURCE) ? 'fill-yellow-400 text-yellow-500' : ''}`} />
+                    </Button>
                   )}
                 </div>
               ))}
