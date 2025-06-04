@@ -21,9 +21,9 @@ import { navItems } from '@/config/site';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ThemeToggleButton } from '@/components/theme-toggle-button';
-import { GlobalSearchDialog } from '@/components/global-search-dialog'; // New import
-import { Search } from 'lucide-react'; // New import
-import { useTheme } from '@/hooks/use-theme'; // New import for shortcut
+import { GlobalSearchDialog } from '@/components/global-search-dialog';
+import { Search } from 'lucide-react';
+import { useTheme } from '@/hooks/use-theme';
 
 function AppSidebarHeader() {
   const { state } = useSidebar();
@@ -89,12 +89,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </SidebarContent>
         </Sidebar>
         <SidebarInset className="flex-1">
-          <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
-            <div className="flex items-center gap-2"> {/* Left group */}
+          <header className="sticky top-0 z-10 flex h-14 items-center border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
+            {/* Left group: Contains the sidebar trigger */}
+            <div className="flex items-center gap-2">
               <SidebarTrigger suppressHydrationWarning />
               {/* You can add breadcrumbs or page title here dynamically if needed */}
             </div>
-            <div className="flex items-center gap-2"> {/* Right group */}
+            
+            {/* Spacer: This div will grow to take up all available space in the middle */}
+            <div className="flex-grow" />
+            
+            {/* Right group: Contains search and theme toggle buttons */}
+            <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" onClick={() => setIsSearchOpen(true)} aria-label="Open search">
                 <Search className="h-5 w-5" />
               </Button>
