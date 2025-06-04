@@ -4,8 +4,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Cpu, ListChecks, MessagesSquare, NotebookText, MessageCircleQuestion, Newspaper, Settings, GraduationCap, CalendarCheck, Copy, Bookmark as BookmarkIcon } from "lucide-react";
+import { Cpu, ListChecks, MessagesSquare, NotebookText, MessageCircleQuestion, Newspaper, Settings, GraduationCap, CalendarCheck, Copy, Bookmark as BookmarkIcon, Trophy, BarChartHorizontalBig } from "lucide-react";
 import StudyStreakTracker from "@/components/study-streak-tracker";
+import UserPointsDisplay from "@/components/user-points-display"; // Import the new component
 
 const featureCardColors = [
   "bg-sky-600 text-white",
@@ -18,7 +19,7 @@ const featureCardColors = [
   "bg-pink-600 text-white", 
   "bg-cyan-600 text-white", 
   "bg-lime-500 text-black", 
-  "bg-orange-500 text-black", // New color for Bookmarks
+  "bg-orange-500 text-black", 
   "bg-slate-600 text-white",
 ];
 
@@ -97,7 +98,11 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      <StudyStreakTracker />
+      <div className="grid md:grid-cols-2 gap-6">
+        <StudyStreakTracker />
+        <UserPointsDisplay />
+      </div>
+      
 
       <section>
         <h2 className="text-2xl md:text-3xl font-headline font-semibold mb-6 text-foreground">Explore Features</h2>

@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import toast from 'react-hot-toast';
-import { Flame, Target, CheckCircle2 } from 'lucide-react';
+import { Flame, Target, CheckCircle2, Award } from 'lucide-react';
+import { addUserPoints } from '@/lib/points'; // Import point utility
 
 const STREAK_DATA_KEY = 'studyStreakData';
 
@@ -86,6 +87,7 @@ export default function StudyStreakTracker() {
 
     const today = getTodayDateString();
     let newStreak = streakData.currentStreak;
+    let pointsAwarded = false;
 
     if (streakData.lastCompletionDate === today && streakData.goalAchievedToday) {
         toast("You've already achieved your goal for today!");
@@ -104,15 +106,24 @@ export default function StudyStreakTracker() {
        if (newStreak === 0) newStreak = 1;
     }
     
+    addUserPoints(50); // Award 50 points for achieving goal
+    pointsAwarded = true;
+
     setStreakData(prev => ({
       ...prev,
       currentStreak: newStreak,
       lastCompletionDate: today,
       goalAchievedToday: true,
     }));
-    toast.success(`Goal Achieved! Your streak is now ${newStreak}.`, {
-        iconTheme: { primary: '#10B981', secondary: '#FFFFFF'}, // Green checkmark
-        style: { background: '#D1FAE5', color: '#065F46' } // Light green background, dark green text
+
+    let toastMessage = `Goal Achieved! Your streak is now ${newStreak}.`;
+    if (pointsAwarded) {
+      toastMessage += " (+50 Points!)";
+    }
+
+    toast.success(toastMessage, {
+        iconTheme: { primary: '#10B981', secondary: '#FFFFFF'},
+        style: { background: '#D1FAE5', color: '#065F46' }
     });
   };
   
@@ -143,7 +154,7 @@ export default function StudyStreakTracker() {
             Your Current Streak: {streakData.currentStreak} day{streakData.currentStreak > 1 ? 's' : ''}!
           </div>
         )}
-         <CardDescription>Set a daily goal to stay motivated. Mark it complete to build your streak!</CardDescription>
+         <CardDescription>Set a daily goal to stay motivated. Mark it complete to build your streak and earn points!</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <form onSubmit={handleSetGoal} className="space-y-3">
@@ -174,7 +185,7 @@ export default function StudyStreakTracker() {
               </div>
             ) : (
               <Button onClick={handleAchieveGoal} className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg">
-                <CheckCircle2 className="mr-2 h-5 w-5" /> Mark as Achieved
+                <CheckCircle2 className="mr-2 h-5 w-5" /> Mark as Achieved & Earn Points
               </Button>
             )}
           </div>

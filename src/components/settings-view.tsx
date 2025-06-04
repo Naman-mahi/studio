@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import toast from 'react-hot-toast';
 import { Trash2 } from 'lucide-react';
+import { POINTS_STORAGE_KEY, resetUserPoints } from '@/lib/points'; // Import points constants
 
 export const USER_LANGUAGE_PREFERENCE_KEY = 'user-language-preference';
 const AI_QUIZ_GENERATOR_CACHE_KEY = "ai-quiz-generator-cache";
@@ -44,10 +45,11 @@ const CACHE_KEYS_TO_CLEAR = [
   CURRENT_AFFAIRS_CACHE_KEY,
   STREAK_DATA_KEY,
   TOPIC_AI_TUTOR_SELECTION_KEY,
-  USER_LANGUAGE_PREFERENCE_KEY, // Also clear language preference as it's part of app data
+  USER_LANGUAGE_PREFERENCE_KEY, 
   STUDY_PLANNER_CACHE_KEY,
   FLASHCARD_GENERATOR_CACHE_KEY,
   BOOKMARKS_KEY,
+  POINTS_STORAGE_KEY, // Add points key
 ];
 
 
@@ -100,7 +102,9 @@ export default function SettingsView() {
         }
       });
       
-      if (clearedCount > 0) {
+      resetUserPoints(); // Explicitly reset points to ensure UI update via storage event
+
+      if (clearedCount > 0 || localStorage.getItem(POINTS_STORAGE_KEY) === '0') { // Check if points were reset too
         toast.success("All locally stored application data has been cleared.");
       } else {
         toast.info("No cached data found to clear.");
@@ -110,7 +114,6 @@ export default function SettingsView() {
       toast.error("Could not clear all cached data. Please try again.");
     }
     setIsAlertOpen(false);
-    // Reload to ensure all components re-fetch or reset their state and language preference takes full effect.
     window.location.reload(); 
   };
 
@@ -168,7 +171,7 @@ export default function SettingsView() {
         <CardHeader>
           <CardTitle className="font-headline">Manage Application Data</CardTitle>
           <CardDescription>
-            Clear all locally cached data from this application in your browser. This includes chat histories, saved inputs, generated content, study streak progress, topic selections, language preferences, and bookmarks.
+            Clear all locally cached data from this application in your browser. This includes chat histories, saved inputs, generated content, study streak progress, topic selections, language preferences, bookmarks, and accumulated points.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -182,7 +185,7 @@ export default function SettingsView() {
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action will permanently delete all cached application data stored in your browser, including your language preference. This cannot be undone. The page will reload after clearing.
+                  This action will permanently delete all cached application data stored in your browser, including your language preference and points. This cannot be undone. The page will reload after clearing.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
