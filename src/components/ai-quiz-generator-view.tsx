@@ -8,24 +8,19 @@ import { Label } from "@/components/ui/label";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Progress } from "@/components/ui/progress"; // Added for analytics
 import { generateQuizQuestions } from "@/app/(app)/ai-quiz-generator/actions";
 import type { QuizQuestionGeneratorInput, QuizQuestionGeneratorOutput } from '@/ai/flows/practice-question-generator';
 import toast from 'react-hot-toast';
 import { LoadingIndicator } from "@/components/loading-indicator";
 import { getStoredLanguage } from "./settings-view";
-import { ArrowLeft, ArrowRight, CheckCircle, HelpCircle, ListChecks, RotateCcw, XCircle, FileText, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle, HelpCircle, ListChecks, RotateCcw, XCircle, FileText, Sparkles, BarChart3 } from "lucide-react";
 
 interface GeneratedQuestion {
   question: string;
   options: string[];
   answer: string; // Correct answer text
   explanation?: string;
-}
-
-interface UserQuizAttempt {
-  questionIndex: number;
-  selectedOption: string | null;
-  isCorrect?: boolean; // Populated after submission
 }
 
 interface QuizConfig {
@@ -35,17 +30,21 @@ interface QuizConfig {
   difficulty: "Easy" | "Medium" | "Hard";
 }
 
+interface LastQuizResults {
+    questions: Array<GeneratedQuestion & { userAnswer: string | null; isCorrect: boolean | undefined }>; // Ensure userAnswer and isCorrect are part of cached questions
+    userAnswers: Array<string | null>;
+    score: number;
+    quizConfig: QuizConfig; // Add quizConfig to results
+}
+
 interface AiQuizGeneratorCache {
   config: QuizConfig | null;
   generatedQuestions: GeneratedQuestion[] | null;
   userSelectedAnswers: Array<string | null> | null; // For in-progress quiz
-  lastQuizResults: { // For last submitted quiz
-    questions: GeneratedQuestion[];
-    userAnswers: Array<string | null>;
-    score: number;
-  } | null;
+  lastQuizResults: LastQuizResults | null; // For last submitted quiz
   languageAtGeneration: string | null; // Store language when quiz was generated
 }
+
 
 const AI_QUIZ_GENERATOR_CACHE_KEY = "ai-quiz-generator-cache";
 
@@ -92,7 +91,7 @@ export default function AiQuizGeneratorView() {
   });
   const [generatedQuestions, setGeneratedQuestions] = useState<GeneratedQuestion[]>([]);
   const [userSelectedAnswers, setUserSelectedAnswers] = useState<Array<string | null>>([]);
-  const [lastQuizResults, setLastQuizResults] = useState<AiQuizGeneratorCache['lastQuizResults']>(null);
+  const [lastQuizResults, setLastQuizResults] = useState<LastQuizResults | null>(null);
   
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [currentLanguage, setCurrentLanguage] = useState('en');
@@ -107,28 +106,44 @@ export default function AiQuizGeneratorView() {
       if (cachedDataString) {
         const parsedCache: AiQuizGeneratorCache = JSON.parse(cachedDataString);
         if (parsedCache.config) setQuizConfig(parsedCache.config);
-        if (parsedCache.generatedQuestions && parsedCache.languageAtGeneration === initialLang) {
-          setGeneratedQuestions(parsedCache.generatedQuestions);
-          setLanguageAtGeneration(parsedCache.languageAtGeneration);
-          if (parsedCache.userSelectedAnswers) {
-             setUserSelectedAnswers(parsedCache.userSelectedAnswers);
-             // If there are generated questions and potentially some answers, user might have been taking a quiz
-             if (parsedCache.generatedQuestions.length > 0 && !parsedCache.lastQuizResults) {
-                 setQuizState("taking");
-                 // Find first unanswered question or default to 0
-                 const firstUnanswered = parsedCache.userSelectedAnswers.findIndex(ans => ans === null);
-                 setCurrentQuestionIndex(firstUnanswered !== -1 ? firstUnanswered : 0);
-             }
-          }
-        }
-        if (parsedCache.lastQuizResults && parsedCache.languageAtGeneration === initialLang) {
-          setLastQuizResults(parsedCache.lastQuizResults);
-          setQuizState("results"); // If there are past results for this config/lang, show them
+        
+        // Check if language at generation matches current language before loading quiz/results
+        if (parsedCache.languageAtGeneration === initialLang) {
+            setLanguageAtGeneration(parsedCache.languageAtGeneration);
+            if (parsedCache.generatedQuestions) {
+                setGeneratedQuestions(parsedCache.generatedQuestions);
+            }
+            if (parsedCache.userSelectedAnswers && parsedCache.generatedQuestions && parsedCache.generatedQuestions.length > 0) {
+                setUserSelectedAnswers(parsedCache.userSelectedAnswers);
+                if (!parsedCache.lastQuizResults) { // If quiz was in progress
+                    setQuizState("taking");
+                    const firstUnanswered = parsedCache.userSelectedAnswers.findIndex(ans => ans === null);
+                    setCurrentQuestionIndex(firstUnanswered !== -1 ? firstUnanswered : 0);
+                }
+            }
+            if (parsedCache.lastQuizResults) {
+                setLastQuizResults(parsedCache.lastQuizResults);
+                 // Ensure that lastQuizResults.quizConfig matches the current quizConfig if we are to show old results for this config
+                if (parsedCache.config && parsedCache.lastQuizResults.quizConfig && 
+                    parsedCache.lastQuizResults.quizConfig.topic === parsedCache.config.topic &&
+                    parsedCache.lastQuizResults.quizConfig.subject === parsedCache.config.subject &&
+                    parsedCache.lastQuizResults.quizConfig.difficulty === parsedCache.config.difficulty &&
+                    parsedCache.lastQuizResults.quizConfig.numQuestions === parsedCache.config.numQuestions
+                ) {
+                    setQuizState("results");
+                } else {
+                    // If config mismatch, don't show old results, user needs to generate for current config
+                    setLastQuizResults(null); 
+                }
+            }
+        } else {
+            // Language mismatch, clear potentially incompatible cached quiz data
+            resetQuizStateToConfiguring(true); // true to keep current config
         }
       }
     } catch (error) {
       console.error("Failed to load quiz cache from localStorage", error);
-      localStorage.removeItem(AI_QUIZ_GENERATOR_CACHE_KEY); // Clear corrupted cache
+      localStorage.removeItem(AI_QUIZ_GENERATOR_CACHE_KEY);
     }
   }, []);
 
@@ -137,10 +152,9 @@ export default function AiQuizGeneratorView() {
       const newLang = getStoredLanguage();
       if (newLang !== currentLanguage) {
         setCurrentLanguage(newLang);
-        // If language changes, and it's different from language at generation, reset to config
         if (languageAtGeneration && newLang !== languageAtGeneration) {
-            resetQuizStateToConfiguring();
-            toast.info("Language changed. Please regenerate the quiz for the new language.");
+            resetQuizStateToConfiguring(true);
+            toast.info("Language changed. Please regenerate the quiz for the new language, or switch back to the previous language to see cached results.");
         }
       }
     };
@@ -150,16 +164,15 @@ export default function AiQuizGeneratorView() {
       if (lang !== currentLanguage) {
          setCurrentLanguage(lang);
          if (languageAtGeneration && lang !== languageAtGeneration) {
-            resetQuizStateToConfiguring();
-            toast.info("Language changed. Please regenerate the quiz for the new language.");
+            resetQuizStateToConfiguring(true);
+            toast.info("Language changed. Please regenerate the quiz for the new language, or switch back to see cached results.");
         }
       }
     }, 1000);
 
-    // Save to cache
     const cacheData: AiQuizGeneratorCache = { 
         config: quizConfig, 
-        generatedQuestions, 
+        generatedQuestions: quizState === "configuring" ? null : generatedQuestions, // Only cache questions if not in config state
         userSelectedAnswers: quizState === "taking" ? userSelectedAnswers : null, 
         lastQuizResults: quizState === "results" ? lastQuizResults : null,
         languageAtGeneration
@@ -172,21 +185,27 @@ export default function AiQuizGeneratorView() {
     };
   }, [quizConfig, generatedQuestions, userSelectedAnswers, lastQuizResults, quizState, currentLanguage, languageAtGeneration]);
 
-  const resetQuizStateToConfiguring = () => {
+  const resetQuizStateToConfiguring = (keepConfig: boolean = false) => {
     setQuizState("configuring");
     setGeneratedQuestions([]);
     setUserSelectedAnswers([]);
     setLastQuizResults(null);
     setCurrentQuestionIndex(0);
-    setLanguageAtGeneration(null);
-    // Keep quizConfig as is, or reset parts of it if desired
+    if (!keepConfig) {
+        // Optionally reset parts of quizConfig or leave as is for user convenience
+        // setQuizConfig(prev => ({...prev, topic: ""})); // Example: clear topic
+    }
+    // languageAtGeneration will be reset when a new quiz is generated
   };
 
   const handleConfigChange = (field: keyof QuizConfig, value: any) => {
-    setQuizConfig(prev => ({ ...prev, [field]: value }));
-    // Reset relevant state if config changes, prompting re-generation
+    const newConfig = { ...quizConfig, [field]: value };
+    if (field === "subject") { // if subject changes, topic must be reset
+        newConfig.topic = "";
+    }
+    setQuizConfig(newConfig);
     if (quizState !== "configuring") {
-        resetQuizStateToConfiguring();
+        resetQuizStateToConfiguring(true); // Keep current config, but reset quiz data
     }
   };
 
@@ -201,10 +220,16 @@ export default function AiQuizGeneratorView() {
 
     setIsLoading(true);
     setQuizState("generating");
-    resetQuizStateToConfiguring(); // Clear previous quiz data before generating new
-
+    
+    // Clear previous quiz data before generating new, but keep config
+    setGeneratedQuestions([]);
+    setUserSelectedAnswers([]);
+    setLastQuizResults(null);
+    setCurrentQuestionIndex(0);
+    
     try {
       const lang = getStoredLanguage();
+      setLanguageAtGeneration(lang); // Set language at the moment of generation
       const output: QuizQuestionGeneratorOutput = await generateQuizQuestions({
         ...quizConfig,
         language: lang,
@@ -213,15 +238,14 @@ export default function AiQuizGeneratorView() {
         setGeneratedQuestions(output.questions);
         setUserSelectedAnswers(Array(output.questions.length).fill(null));
         setCurrentQuestionIndex(0);
-        setLanguageAtGeneration(lang); // Store language used for this quiz
         setQuizState("taking");
       } else {
         toast("The AI couldn't generate questions for the given inputs. Try different topics or subjects.", { duration: 4000 });
-        resetQuizStateToConfiguring();
+        resetQuizStateToConfiguring(true);
       }
     } catch (e: any) {
       toast.error(e.message || "Failed to generate questions.");
-      resetQuizStateToConfiguring();
+      resetQuizStateToConfiguring(true);
     } finally {
       setIsLoading(false);
     }
@@ -245,13 +269,18 @@ export default function AiQuizGeneratorView() {
 
   const handleSubmitQuiz = () => {
     let score = 0;
-    const results = generatedQuestions.map((q, index) => {
+    const resultsQuestions = generatedQuestions.map((q, index) => {
         const userAnswer = userSelectedAnswers[index];
         const isCorrect = userAnswer === q.answer;
         if (isCorrect) score++;
         return { ...q, userAnswer, isCorrect };
     });
-    setLastQuizResults({ questions: results, userAnswers: userSelectedAnswers, score });
+    setLastQuizResults({ 
+        questions: resultsQuestions, 
+        userAnswers: userSelectedAnswers, 
+        score,
+        quizConfig: { ...quizConfig } // Store current config with the results
+    });
     setQuizState("results");
   };
 
@@ -265,6 +294,7 @@ export default function AiQuizGeneratorView() {
         <CardTitle className="font-headline">Configure Your AI Quiz</CardTitle>
         <CardDescription>
           Select subject, topic, number of questions (5-10), and difficulty. AI responses will attempt to use your preferred language.
+          Cached results for the same configuration and language will be shown if available.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -329,15 +359,15 @@ export default function AiQuizGeneratorView() {
             className="space-y-2"
           >
             {currentQ.options.map((option, index) => (
-              <div key={index} className="flex items-center space-x-2 p-2 border rounded-md hover:bg-muted/50 transition-colors">
+              <div key={index} className="flex items-center space-x-2 p-3 border rounded-md hover:bg-muted/50 transition-colors cursor-pointer shadow-sm">
                 <RadioGroupItem value={option} id={`q${currentQuestionIndex}-opt${index}`} />
-                <Label htmlFor={`q${currentQuestionIndex}-opt${index}`} className="cursor-pointer flex-1 text-sm">{option}</Label>
+                <Label htmlFor={`q${currentQuestionIndex}-opt${index}`} className="cursor-pointer flex-1 text-sm font-normal">{option}</Label>
               </div>
             ))}
           </RadioGroup>
         </CardContent>
         <CardFooter className="flex justify-between items-center">
-          <Button variant="outline" onClick={() => resetQuizStateToConfiguring()} className="shadow-sm hover:shadow-md">
+          <Button variant="outline" onClick={() => resetQuizStateToConfiguring(true)} className="shadow-sm hover:shadow-md">
             <RotateCcw className="mr-2 h-4 w-4" /> New Quiz Config
           </Button>
           <div className="flex gap-2">
@@ -361,46 +391,72 @@ export default function AiQuizGeneratorView() {
 
   const renderResults = () => {
     if (!lastQuizResults) return null;
-    const { questions: resultQuestions, score } = lastQuizResults;
+    const { questions: resultQuestions, score, quizConfig: resultsConfig } = lastQuizResults;
+    const accuracy = resultQuestions.length > 0 ? (score / resultQuestions.length) * 100 : 0;
 
     return (
       <Card className="shadow-lg animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ease-out">
         <CardHeader>
-          <CardTitle className="font-headline">Quiz Results</CardTitle>
-          <CardDescription>You scored {score} out of {resultQuestions.length}! ({((score / resultQuestions.length) * 100).toFixed(0)}%)</CardDescription>
+          <CardTitle className="font-headline text-2xl">Quiz Results</CardTitle>
+          <CardDescription>
+            For quiz on {resultsConfig.topic} ({resultsConfig.subject}) - Difficulty: {resultsConfig.difficulty}
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
+          {/* Performance Summary Section */}
+          <Card className="bg-muted/30 dark:bg-muted/20 shadow-md">
+            <CardHeader>
+              <CardTitle className="font-headline text-xl flex items-center gap-2">
+                <BarChart3 className="h-6 w-6 text-primary" />
+                Performance Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-lg">
+                You scored <strong className="text-primary">{score}</strong> out of <strong className="text-primary">{resultQuestions.length}</strong> questions.
+              </p>
+              <div className="space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span>Accuracy:</span>
+                  <span className="font-semibold text-primary">{accuracy.toFixed(0)}%</span>
+                </div>
+                <Progress value={accuracy} className="h-3 shadow-sm" />
+              </div>
+            </CardContent>
+          </Card>
+          
           <div>
-            <h3 className="font-semibold mb-2 text-lg">Review Your Answers:</h3>
+            <h3 className="font-semibold mb-3 text-lg font-headline">Review Your Answers:</h3>
             <Accordion type="single" collapsible className="w-full">
               {resultQuestions.map((q, index) => (
-                <AccordionItem value={`item-${index}`} key={index} className="mb-2 last:mb-0">
+                <AccordionItem value={`item-${index}`} key={index} className="mb-2 last:mb-0 border shadow-sm rounded-md overflow-hidden">
                   <AccordionTrigger 
-                    className={`font-semibold hover:no-underline text-left p-3 rounded-md transition-colors ${
-                      q.isCorrect ? 'bg-green-100 dark:bg-green-900/50 hover:bg-green-200 dark:hover:bg-green-800/60' : 'bg-red-100 dark:bg-red-900/50 hover:bg-red-200 dark:hover:bg-red-800/60'
+                    className={`font-semibold hover:no-underline text-left p-3 rounded-t-md transition-colors ${
+                      q.isCorrect ? 'bg-green-100 dark:bg-green-900/30 hover:bg-green-200/70 dark:hover:bg-green-800/40' : 'bg-red-100 dark:bg-red-900/30 hover:bg-red-200/70 dark:hover:bg-red-800/40'
                     }`}
                   >
                     <div className="flex items-center justify-between w-full">
-                        <span className="flex-1">Question {index + 1}: <span className="font-normal italic">"{q.question.substring(0, 50)}{q.question.length > 50 ? '...' : ''}"</span></span>
+                        <span className="flex-1 text-sm">Question {index + 1}: <span className="font-normal italic">"{q.question.substring(0, 50)}{q.question.length > 50 ? '...' : ''}"</span></span>
                         {q.isCorrect ? <CheckCircle className="ml-2 h-5 w-5 text-green-600 dark:text-green-400"/> : <XCircle className="ml-2 h-5 w-5 text-red-600 dark:text-red-400"/>}
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="bg-muted/30 dark:bg-muted/20 p-4 rounded-b-md shadow-inner mt-0 border-x border-b">
+                  <AccordionContent className="bg-card p-4 rounded-b-md mt-0 border-t">
                     <p className="text-sm mb-2 whitespace-pre-wrap"><strong>Your Question:</strong> {q.question}</p>
                     <div className="space-y-1 mb-3">
                         <strong>Options:</strong>
                         {q.options.map((opt, optIdx) => (
-                            <div key={optIdx} className={`text-sm pl-4 p-1 rounded ${
-                                opt === q.answer ? 'font-semibold text-green-700 dark:text-green-300' : ''
+                            <div key={optIdx} className={`text-xs md:text-sm pl-4 p-1.5 rounded-md my-1 ${
+                                opt === q.answer ? 'font-semibold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/50' : ''
                             } ${
-                                opt === q.userAnswer && opt !== q.answer ? 'text-red-700 dark:text-red-300 line-through' : ''
+                                opt === q.userAnswer && opt !== q.answer ? 'text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/50 line-through' : ''
                             } ${
-                                opt === q.userAnswer && opt === q.answer ? 'bg-green-200 dark:bg-green-800/50' : ''
+                                opt === q.userAnswer && opt === q.answer ? '' : (opt !== q.answer && opt !== q.userAnswer ? 'bg-muted/30 dark:bg-muted/20' : '')
                             }`}>
                                 {opt === q.answer && <CheckCircle className="inline h-4 w-4 mr-1 text-green-600 dark:text-green-400" />}
                                 {opt === q.userAnswer && opt !== q.answer && <XCircle className="inline h-4 w-4 mr-1 text-red-600 dark:text-red-400" />}
+                                {! (opt === q.answer) && ! (opt === q.userAnswer && opt !== q.answer) && <span className="inline-block w-4 mr-1"></span>}
                                 {opt}
-                                {opt === q.userAnswer && <span className="text-xs italic"> (Your answer)</span>}
+                                {opt === q.userAnswer && <span className="text-xs italic ml-1"> (Your answer)</span>}
                             </div>
                         ))}
                     </div>
@@ -409,7 +465,7 @@ export default function AiQuizGeneratorView() {
                     )}
                     <p className="text-sm font-semibold text-primary mb-1">Correct Answer: {q.answer}</p>
                     {q.explanation && (
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-xs text-muted-foreground mt-2 p-2 bg-muted/40 dark:bg-muted/30 rounded-md">
                         <strong>Explanation:</strong> {q.explanation}
                       </p>
                     )}
@@ -420,7 +476,7 @@ export default function AiQuizGeneratorView() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button onClick={() => resetQuizStateToConfiguring()} className="w-full md:w-auto shadow-md hover:shadow-lg">
+          <Button onClick={() => resetQuizStateToConfiguring(true)} className="w-full md:w-auto shadow-md hover:shadow-lg">
             <RotateCcw className="mr-2 h-4 w-4" /> Start New Quiz
           </Button>
         </CardFooter>
@@ -438,7 +494,7 @@ export default function AiQuizGeneratorView() {
       {quizState === "generating" && (
         <Card className="shadow-lg animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ease-out">
           <CardHeader className="items-center">
-            <CardTitle className="font-headline">AI is Crafting Your Quiz!</CardTitle>
+            <CardTitle className="font-headline text-xl">AI is Crafting Your Quiz!</CardTitle>
           </CardHeader>
           <CardContent className="pt-6 flex flex-col items-center justify-center">
             <LoadingIndicator size={48} />
