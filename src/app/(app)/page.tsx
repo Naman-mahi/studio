@@ -60,10 +60,10 @@ function FeatureCard({ icon: Icon, title, description, linkHref, linkText, bgCol
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col flex-grow p-6 pt-0">
-        <div className={`h-40 rounded-md mb-4 flex items-center justify-center ${bgColorClass}`}>
+        <div className={`h-40 rounded-md mb-4 flex items-center justify-center ${bgColorClass} shadow-md`}>
           <h3 className="text-xl font-semibold text-center px-2">{titleForColorBox}</h3>
         </div>
-        <Button asChild className="w-full mt-auto">
+        <Button asChild className="w-full mt-auto shadow-md hover:shadow-lg transition-shadow">
           <Link href={linkHref}>{linkText}</Link>
         </Button>
       </CardContent>
@@ -116,11 +116,11 @@ export default function DashboardPage() {
           </div>
           <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
             <AlertDialogTrigger asChild>
-              <Button variant="outline" className="shrink-0 border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive">
+              <Button variant="outline" className="shrink-0 border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive shadow-sm hover:shadow-md transition-shadow">
                 <Trash2 className="mr-2 h-4 w-4" /> Clear Cached Data
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent className="shadow-xl">
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
@@ -130,7 +130,7 @@ export default function DashboardPage() {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleClearCache} className="bg-destructive hover:bg-destructive/90">
+                <AlertDialogAction onClick={handleClearCache} className="bg-destructive hover:bg-destructive/90 shadow-md hover:shadow-lg">
                   Yes, clear cache
                 </AlertDialogAction>
               </AlertDialogFooter>

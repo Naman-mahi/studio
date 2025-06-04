@@ -161,7 +161,7 @@ export default function PracticeQuestionsView() {
               <div className="space-y-2">
                 <Label htmlFor="subject">Subject</Label>
                 <Select value={subject} onValueChange={handleSubjectChange} disabled={isLoading} name="subject-select">
-                  <SelectTrigger id="subject" suppressHydrationWarning className="shadow-sm">
+                  <SelectTrigger id="subject" suppressHydrationWarning>
                     <SelectValue placeholder="Select Subject" />
                   </SelectTrigger>
                   <SelectContent>
@@ -174,7 +174,7 @@ export default function PracticeQuestionsView() {
               <div className="space-y-2">
                 <Label htmlFor="topic">Topic</Label>
                 <Select value={topic} onValueChange={handleTopicChange} disabled={isLoading || !subject || availableTopics.length === 0} name="topic-select">
-                  <SelectTrigger id="topic" suppressHydrationWarning className="shadow-sm">
+                  <SelectTrigger id="topic" suppressHydrationWarning>
                     <SelectValue placeholder="Select Topic" />
                   </SelectTrigger>
                   <SelectContent>
@@ -196,11 +196,10 @@ export default function PracticeQuestionsView() {
                   disabled={isLoading}
                   required
                   suppressHydrationWarning
-                  className="shadow-sm"
                 />
               </div>
             </div>
-            <Button type="submit" disabled={isLoading || !subject || !topic} className="w-full md:w-auto">
+            <Button type="submit" disabled={isLoading || !subject || !topic} className="w-full md:w-auto shadow-md hover:shadow-lg">
               {isLoading ? <LoadingIndicator size={20} className="mr-2" /> : null}
               Generate Questions
             </Button>
@@ -229,7 +228,7 @@ export default function PracticeQuestionsView() {
                   <AccordionTrigger className="font-semibold hover:no-underline text-left">
                     Question {index + 1}: {q.question}
                   </AccordionTrigger>
-                  <AccordionContent className="bg-background p-3 rounded-md shadow-inner">
+                  <AccordionContent className="bg-muted/50 p-3 rounded-md shadow-inner">
                     <p className="font-medium text-primary mb-1">Answer: {q.answer}</p>
                     {q.explanation && (
                       <p className="text-sm text-muted-foreground mt-1">

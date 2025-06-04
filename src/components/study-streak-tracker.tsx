@@ -132,7 +132,7 @@ export default function StudyStreakTracker() {
   
   if (!isClient) {
     return (
-      <Card className="shadow-lg">
+      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 font-headline text-xl">
             <Target className="text-accent w-6 h-6" /> Daily Study Goal
@@ -173,7 +173,7 @@ export default function StudyStreakTracker() {
               disabled={streakData.goalAchievedToday}
             />
           </div>
-          <Button type="submit" className="w-full sm:w-auto" disabled={streakData.goalAchievedToday}>
+          <Button type="submit" className="w-full sm:w-auto shadow-md hover:shadow-lg" disabled={streakData.goalAchievedToday}>
             {streakData.dailyGoal && !streakData.goalAchievedToday ? "Update Goal" : "Set Goal"}
           </Button>
         </form>
@@ -182,12 +182,12 @@ export default function StudyStreakTracker() {
           <div className="mt-4 pt-4 border-t">
             <h4 className="font-semibold text-lg mb-2">Today's Goal: <span className="font-normal text-primary">{streakData.dailyGoal}</span></h4>
             {streakData.goalAchievedToday ? (
-              <div className="flex items-center gap-2 p-3 rounded-md bg-green-100 text-green-700 border border-green-300">
+              <div className="flex items-center gap-2 p-3 rounded-md bg-green-100 text-green-700 border border-green-300 shadow-sm">
                 <CheckCircle2 className="w-6 h-6" />
                 <p className="font-medium">Goal achieved for today! Keep it up!</p>
               </div>
             ) : (
-              <Button onClick={handleAchieveGoal} className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white">
+              <Button onClick={handleAchieveGoal} className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg">
                 <CheckCircle2 className="mr-2 h-5 w-5" /> Mark as Achieved
               </Button>
             )}

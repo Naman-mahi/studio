@@ -123,6 +123,15 @@ export default function AiSolverView() {
         }
     }
   };
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    } else {
+      setFile(null);
+    }
+  };
+
 
   return (
     <div className="space-y-6">
@@ -151,16 +160,13 @@ export default function AiSolverView() {
                     value={questionText}
                     onChange={(e) => {
                         setQuestionText(e.target.value);
-                        // Clear file selection if user starts typing
                         setFile(null);
-                        // Clear result when input changes significantly
                         if (Math.abs(e.target.value.length - (localStorage.getItem(AI_SOLVER_CACHED_INPUT_KEY)?.length || 0)) > 10) {
                             setResult(null);
                             localStorage.removeItem(AI_SOLVER_CACHED_RESULT_KEY);
                         }
                     }}
                     disabled={isLoading}
-                    className="shadow-sm"
                   />
                 </div>
               </TabsContent>
@@ -173,20 +179,19 @@ export default function AiSolverView() {
                     accept="image/*, .txt"
                     onChange={(e) => {
                         handleFileChange(e);
-                        // Clear text area if file is chosen
                         setQuestionText("");
-                        setResult(null); // Clear result when new file is chosen
+                        setResult(null); 
                         localStorage.removeItem(AI_SOLVER_CACHED_INPUT_KEY);
                         localStorage.removeItem(AI_SOLVER_CACHED_RESULT_KEY);
                     }}
                     disabled={isLoading}
-                    className="shadow-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                    className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                   />
                   {file && <p className="text-sm text-muted-foreground">Selected file: {file.name}</p>}
                 </div>
               </TabsContent>
             </Tabs>
-            <Button type="submit" disabled={isLoading || (!questionText.trim() && !file)} className="w-full md:w-auto">
+            <Button type="submit" disabled={isLoading || (!questionText.trim() && !file)} className="w-full md:w-auto shadow-md hover:shadow-lg">
               {isLoading ? <LoadingIndicator size={20} className="mr-2" /> : null}
               Solve Paper
             </Button>

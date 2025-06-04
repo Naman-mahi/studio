@@ -110,12 +110,12 @@ export default function ChatSupportView() {
                   }`}
                 >
                   {message.role === "assistant" && (
-                    <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
+                    <Avatar className="h-8 w-8 bg-primary text-primary-foreground shadow-sm">
                       <AvatarFallback><Bot size={18}/></AvatarFallback>
                     </Avatar>
                   )}
                   <div
-                    className={`max-w-[70%] rounded-lg p-3 text-sm shadow whitespace-pre-wrap ${
+                    className={`max-w-[70%] rounded-lg p-3 text-sm shadow-md whitespace-pre-wrap ${
                       message.role === "user"
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted text-muted-foreground"
@@ -124,7 +124,7 @@ export default function ChatSupportView() {
                     {message.content}
                   </div>
                   {message.role === "user" && (
-                     <Avatar className="h-8 w-8 bg-accent text-accent-foreground">
+                     <Avatar className="h-8 w-8 bg-accent text-accent-foreground shadow-sm">
                        <AvatarFallback><User size={18}/></AvatarFallback>
                      </Avatar>
                   )}
@@ -132,10 +132,10 @@ export default function ChatSupportView() {
               ))}
               {isLoading && (
                 <div className="flex items-end gap-2">
-                   <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
+                   <Avatar className="h-8 w-8 bg-primary text-primary-foreground shadow-sm">
                       <AvatarFallback><Bot size={18}/></AvatarFallback>
                     </Avatar>
-                  <div className="max-w-[70%] rounded-lg p-3 text-sm bg-muted text-muted-foreground shadow">
+                  <div className="max-w-[70%] rounded-lg p-3 text-sm bg-muted text-muted-foreground shadow-md">
                     <LoadingIndicator size={20} />
                   </div>
                 </div>
@@ -152,7 +152,7 @@ export default function ChatSupportView() {
                 className="flex-grow"
                 suppressHydrationWarning
               />
-              <Button type="submit" disabled={isLoading || !input.trim()} size="icon">
+              <Button type="submit" disabled={isLoading || !input.trim()} size="icon" className="shadow-md hover:shadow-lg">
                 <Send className="h-4 w-4" />
               </Button>
             </form>

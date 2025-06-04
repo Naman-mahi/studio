@@ -103,7 +103,7 @@ export default function CurrentAffairsView() {
                 disabled={isLoading}
                 name="category-select"
               >
-                <SelectTrigger id="category" className="w-full md:w-[280px] shadow-sm" suppressHydrationWarning>
+                <SelectTrigger id="category" className="w-full md:w-[280px]" suppressHydrationWarning>
                   <SelectValue placeholder="Select Category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -113,7 +113,7 @@ export default function CurrentAffairsView() {
                 </SelectContent>
               </Select>
             </div>
-            <Button type="submit" disabled={isLoading} className="w-full md:w-auto">
+            <Button type="submit" disabled={isLoading} className="w-full md:w-auto shadow-md hover:shadow-lg">
               {isLoading ? <LoadingIndicator size={20} className="mr-2" /> : null}
               Fetch Current Affairs
             </Button>

@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { PastPaper, Question } from "@/data/past-papers";
@@ -14,10 +15,10 @@ export default function PastPapersView() {
   if (selectedPaper) {
     return (
       <div className="space-y-4">
-        <Button variant="outline" onClick={() => setSelectedPaper(null)} className="mb-4">
+        <Button variant="outline" onClick={() => setSelectedPaper(null)} className="mb-4 shadow-sm hover:shadow-md transition-shadow">
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Papers
         </Button>
-        <Card>
+        <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="font-headline text-2xl">{selectedPaper.title}</CardTitle>
             <CardDescription>{selectedPaper.description}</CardDescription>
@@ -28,10 +29,10 @@ export default function PastPapersView() {
               <Accordion type="single" collapsible className="w-full">
                 {selectedPaper.questions.map((q, index) => (
                   <AccordionItem value={`item-${index}`} key={q.id}>
-                    <AccordionTrigger className="font-semibold hover:no-underline">
+                    <AccordionTrigger className="font-semibold hover:no-underline text-left">
                       Question {index + 1}: {q.text}
                     </AccordionTrigger>
-                    <AccordionContent>
+                    <AccordionContent className="bg-muted/50 p-3 rounded-md shadow-inner">
                       <p className="font-medium text-primary mb-1">Answer: {q.answer}</p>
                       {q.explanation && (
                         <p className="text-sm text-muted-foreground">
@@ -56,7 +57,7 @@ export default function PastPapersView() {
       <h1 className="text-3xl font-headline font-bold">Past Question Papers</h1>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {pastPapersData.map((paper) => (
-          <Card key={paper.id} className="flex flex-col shadow-md hover:shadow-xl transition-shadow">
+          <Card key={paper.id} className="flex flex-col shadow-lg hover:shadow-xl transition-shadow">
             <CardHeader>
               <CardTitle className="font-headline text-xl">{paper.title}</CardTitle>
               <CardDescription>{paper.description}</CardDescription>
@@ -66,7 +67,7 @@ export default function PastPapersView() {
               <p className="text-sm text-muted-foreground">Questions: {paper.questions.length}</p>
             </CardContent>
             <CardFooter>
-              <Button onClick={() => setSelectedPaper(paper)} className="w-full">
+              <Button onClick={() => setSelectedPaper(paper)} className="w-full shadow-md hover:shadow-lg transition-shadow">
                 View Paper
               </Button>
             </CardFooter>
