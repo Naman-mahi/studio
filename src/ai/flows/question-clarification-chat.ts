@@ -43,7 +43,7 @@ const prompt = ai.definePrompt({
   Use the context and previous messages to understand the student's current understanding and provide relevant assistance.
 
   {{#if subject}}
-  The student is focusing on Subject: {{{subject}}}{{#if topic}}}, Topic: {{{topic}}}{{/if}}. Tailor your guidance accordingly.
+  The student is focusing on Subject: {{{subject}}}{{#if topic}} and Topic: {{{topic}}}{{/if}}. Tailor your guidance accordingly.
   {{else}}
   You are acting as a general AI tutor.
   {{/if}}
@@ -86,3 +86,4 @@ const questionClarificationChatFlow = ai.defineFlow(
     return result.output;
   }
 );
+
