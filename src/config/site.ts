@@ -26,8 +26,8 @@ export const navItems: NavItem[] = [
     icon: Cpu,
   },
   {
-    title: 'Practice Questions',
-    href: '/practice-questions',
+    title: 'AI Quiz Generator',
+    href: '/ai-quiz-generator',
     icon: ListChecks,
   },
   {
@@ -56,3 +56,4 @@ export const navItems: NavItem[] = [
     icon: Settings,
   },
 ];
+

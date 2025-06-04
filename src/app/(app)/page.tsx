@@ -52,8 +52,8 @@ function FeatureCard({ icon: Icon, title, description, linkHref, linkText, bgCol
 
 export default function DashboardPage() {
   const features = [
+    { icon: ListChecks, title: "AI Quiz Generator", description: "Generate custom quizzes with varying difficulty based on specific RRB NTPC topics.", linkHref: "/ai-quiz-generator", linkText: "Create Quiz", titleForColorBox: "AI Quiz" },
     { icon: Cpu, title: "AI Question Solver", description: "Upload question papers and get AI-powered solutions and answer keys.", linkHref: "/ai-solver", linkText: "Try AI Solver", titleForColorBox: "AI Solver" },
-    { icon: ListChecks, title: "Practice Questions", description: "Generate practice questions based on specific RRB NTPC topics and subjects.", linkHref: "/practice-questions", linkText: "Create Quiz", titleForColorBox: "Practice Quiz" },
     { icon: GraduationCap, title: "Topic AI Tutor", description: "Select a subject & topic for focused AI guidance and clarification.", linkHref: "/topic-ai-tutor", linkText: "Start Session", titleForColorBox: "Topic Tutor" },
     { icon: MessageCircleQuestion, title: "AI Q&A Assistant", description: "Get quick answers to your general knowledge and exam-related queries.", linkHref: "/ai-qa-chat", linkText: "Ask AI", titleForColorBox: "AI Q&A" },
     { icon: MessagesSquare, title: "Chat Support (General)", description: "Engage with our AI for general question clarification and discussion.", linkHref: "/chat-support", linkText: "Start Chatting", titleForColorBox: "General AI Chat" },
@@ -79,7 +79,7 @@ export default function DashboardPage() {
         </p>
         <div className="flex flex-wrap gap-3 sm:gap-4">
           <Button asChild size="lg" className="shadow-md hover:shadow-lg transition-shadow bg-primary hover:bg-primary/90 text-primary-foreground">
-            <Link href="/practice-questions">Create Custom Quiz</Link>
+            <Link href="/ai-quiz-generator">Create Custom Quiz</Link>
           </Button>
            <Button asChild variant="secondary" size="lg" className="shadow-md hover:shadow-lg transition-shadow">
             <Link href="/current-affairs">Read Current Affairs</Link>
@@ -87,7 +87,6 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* StudyStreakTracker moved to the top */}
       <StudyStreakTracker />
 
       <section>
@@ -110,3 +109,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
