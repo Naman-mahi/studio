@@ -4,9 +4,11 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Cpu, ListChecks, MessagesSquare, NotebookText, MessageCircleQuestion, Newspaper, Settings, GraduationCap, CalendarCheck, Copy, Bookmark as BookmarkIcon, Trophy, BarChartHorizontalBig } from "lucide-react";
+import { Cpu, ListChecks, MessagesSquare, NotebookText, MessageCircleQuestion, Newspaper, Settings, GraduationCap, CalendarCheck, Copy, Bookmark as BookmarkIcon, Trophy, BarChartHorizontalBig, Award } from "lucide-react";
 import StudyStreakTracker from "@/components/study-streak-tracker";
-import UserPointsDisplay from "@/components/user-points-display"; // Import the new component
+import UserPointsDisplay from "@/components/user-points-display";
+import UserBadgesDisplay from "@/components/user-badges-display"; // Import UserBadgesDisplay
+import { useSound } from "@/hooks/use-sound"; // Import useSound hook
 
 const featureCardColors = [
   "bg-sky-600 text-white",
@@ -34,6 +36,11 @@ interface FeatureCardProps {
 }
 
 function FeatureCard({ icon: Icon, title, description, linkHref, linkText, bgColorClass, titleForColorBox }: FeatureCardProps) {
+  const playSound = useSound();
+  const handleButtonClick = () => {
+    playSound('click');
+  };
+
   return (
     <Card className="flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
       <CardHeader>
@@ -47,7 +54,7 @@ function FeatureCard({ icon: Icon, title, description, linkHref, linkText, bgCol
         <div className={`h-40 rounded-md mb-4 flex items-center justify-center ${bgColorClass} shadow-md`}>
           <h3 className="text-xl font-semibold text-center px-2">{titleForColorBox}</h3>
         </div>
-        <Button asChild className="w-full mt-auto shadow-md hover:shadow-lg transition-shadow">
+        <Button asChild className="w-full mt-auto shadow-md hover:shadow-lg transition-shadow" onClick={handleButtonClick}>
           <Link href={linkHref}>{linkText}</Link>
         </Button>
       </CardContent>
@@ -56,6 +63,8 @@ function FeatureCard({ icon: Icon, title, description, linkHref, linkText, bgCol
 }
 
 export default function DashboardPage() {
+  const playSound = useSound();
+
   const features = [
     { icon: CalendarCheck, title: "Study Planner", description: "Generate a personalized study roadmap for your exam preparation.", linkHref: "/study-planner", linkText: "Create Plan", titleForColorBox: "AI Planner" },
     { icon: ListChecks, title: "AI Quiz Generator", description: "Generate custom quizzes with varying difficulty based on specific RRB NTPC topics.", linkHref: "/ai-quiz-generator", linkText: "Create Quiz", titleForColorBox: "AI Quiz" },
@@ -86,21 +95,22 @@ export default function DashboardPage() {
           clarify doubts with our chat support, bookmark important conversations, and generate practice questions tailored to your needs.
         </p>
         <div className="flex flex-wrap gap-3 sm:gap-4">
-          <Button asChild size="lg" className="shadow-md hover:shadow-lg transition-shadow bg-primary hover:bg-primary/90 text-primary-foreground">
+          <Button asChild size="lg" className="shadow-md hover:shadow-lg transition-shadow bg-primary hover:bg-primary/90 text-primary-foreground" onClick={() => playSound('click')}>
             <Link href="/study-planner">Create Study Plan</Link>
           </Button>
-           <Button asChild variant="secondary" size="lg" className="shadow-md hover:shadow-lg transition-shadow">
+           <Button asChild variant="secondary" size="lg" className="shadow-md hover:shadow-lg transition-shadow" onClick={() => playSound('click')}>
             <Link href="/ai-quiz-generator">Generate Quiz</Link>
           </Button>
-           <Button asChild variant="outline" size="lg" className="shadow-md hover:shadow-lg transition-shadow">
+           <Button asChild variant="outline" size="lg" className="shadow-md hover:shadow-lg transition-shadow" onClick={() => playSound('click')}>
             <Link href="/flashcards">Make Flashcards</Link>
           </Button>
         </div>
       </section>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         <StudyStreakTracker />
         <UserPointsDisplay />
+        <UserBadgesDisplay /> 
       </div>
       
 

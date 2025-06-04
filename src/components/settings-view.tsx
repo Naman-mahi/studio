@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch'; // Import Switch
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,13 +16,14 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import toast from 'react-hot-toast';
-import { Trash2, AlertTriangle } from 'lucide-react';
-import { POINTS_STORAGE_KEY, resetUserPoints } from '@/lib/points';
+import { Trash2, AlertTriangle, Volume2, VolumeX } from 'lucide-react'; // Import sound icons
+import { POINTS_STORAGE_KEY } from '@/lib/points';
 import { USER_STATS_KEY } from '@/lib/user-stats';
 import { EARNED_BADGES_KEY } from '@/lib/badges';
+import { USER_SOUND_MUTED_KEY, isSoundMuted, toggleSoundMuted } from '@/lib/sound-settings'; // Import sound settings
+import { useSound } from '@/hooks/use-sound'; // Import useSound hook
 
 
 export const USER_LANGUAGE_PREFERENCE_KEY = 'user-language-preference';
@@ -57,6 +59,7 @@ const ALL_CACHE_KEYS = [
   USER_STATS_KEY,
   EARNED_BADGES_KEY,
   QUIZ_HISTORY_KEY,
+  USER_SOUND_MUTED_KEY, // Add sound mute key to cache clearing
 ];
 
 const CHAT_CACHE_KEYS = [AI_QA_CHAT_MESSAGES_KEY, CHAT_SUPPORT_MESSAGES_KEY, TOPIC_AI_TUTOR_SELECTION_KEY];
@@ -85,12 +88,25 @@ type AlertContextType = 'all' | 'chats' | 'quiz_flashcards' | 'plan_solver' | 'c
 
 export default function SettingsView() {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
+  const [soundMuted, setSoundMuted] = useState<boolean>(true);
   const [isClient, setIsClient] = useState(false);
   const [alertContext, setAlertContext] = useState<AlertContextType>(null);
+  const playSound = useSound();
 
   useEffect(() => {
     setIsClient(true);
     setSelectedLanguage(getStoredLanguage());
+    setSoundMuted(isSoundMuted());
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === USER_SOUND_MUTED_KEY) {
+        setSoundMuted(isSoundMuted());
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   const handleLanguageChange = (newLanguage: string) => {
@@ -98,6 +114,13 @@ export default function SettingsView() {
     localStorage.setItem(USER_LANGUAGE_PREFERENCE_KEY, newLanguage);
     toast.success(`AI language preference updated to ${supportedLanguages.find(l => l.code === newLanguage)?.name || newLanguage}. Page will reload to apply changes across all components.`);
     setTimeout(() => window.location.reload(), 1500);
+  };
+
+  const handleMuteToggle = () => {
+    const newMuteState = toggleSoundMuted();
+    setSoundMuted(newMuteState);
+    playSound(newMuteState ? 'toggle_off' : 'toggle_on');
+    toast.success(newMuteState ? "Sounds Muted" : "Sounds Unmuted");
   };
   
   const clearSpecificCache = (keysToClear: string[], clearTopicTutorMessages: boolean = false) => {
@@ -129,7 +152,6 @@ export default function SettingsView() {
     try {
       if (alertContext === 'all') {
         clearedCount = clearSpecificCache(ALL_CACHE_KEYS, true);
-        // resetUserPoints(); // This is already part of ALL_CACHE_KEYS via POINTS_STORAGE_KEY
         toastMessage = "All locally stored application data has been cleared.";
       } else if (alertContext === 'chats') {
         clearedCount = clearSpecificCache(CHAT_CACHE_KEYS, true);
@@ -217,6 +239,29 @@ export default function SettingsView() {
           </div>
         </CardContent>
       </Card>
+      
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="font-headline">Sound Settings</CardTitle>
+          <CardDescription>
+            Manage application sound effects.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between space-x-2 p-2 border rounded-lg shadow-sm">
+            <Label htmlFor="sound-mute-toggle" className="flex items-center gap-2 cursor-pointer">
+              {soundMuted ? <VolumeX className="h-5 w-5 text-muted-foreground" /> : <Volume2 className="h-5 w-5 text-primary" />}
+              <span>Application Sounds</span>
+            </Label>
+            <Switch
+              id="sound-mute-toggle"
+              checked={!soundMuted}
+              onCheckedChange={handleMuteToggle}
+              aria-label={soundMuted ? "Unmute sounds" : "Mute sounds"}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       <Card className="shadow-lg">
         <CardHeader>
@@ -252,7 +297,7 @@ export default function SettingsView() {
             </div>
             <div className="pt-4 mt-4 border-t">
                  <h3 className="text-lg font-medium text-destructive">Clear All Data</h3>
-                 <p className="text-sm text-muted-foreground mb-3">This will remove all application data, including points and language preferences, and reload the page.</p>
+                 <p className="text-sm text-muted-foreground mb-3">This will remove all application data, including points, language preferences, and sound settings, and reload the page.</p>
                 <Button variant="destructive" onClick={() => openAlert('all')} className="shadow-md hover:shadow-lg">
                     <Trash2 className="mr-2 h-4 w-4" /> Clear All Cached Application Data
                 </Button>
@@ -265,7 +310,7 @@ export default function SettingsView() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              {alertContext === 'all' && "This action will permanently delete ALL cached application data stored in your browser, including your points, stats, badges, and language preference. This cannot be undone. The page will reload after clearing."}
+              {alertContext === 'all' && "This action will permanently delete ALL cached application data stored in your browser, including your points, stats, badges, language preference, and sound settings. This cannot be undone. The page will reload after clearing."}
               {alertContext === 'chats' && "This will delete all chat histories and related topic selections. This cannot be undone."}
               {alertContext === 'quiz_flashcards' && "This will delete all cached quiz configurations, generated flashcards, and quiz attempt history. This cannot be undone."}
               {alertContext === 'plan_solver' && "This will delete all cached study plans and AI solver data. This cannot be undone."}
@@ -286,5 +331,3 @@ export default function SettingsView() {
     </div>
   );
 }
-
-    
