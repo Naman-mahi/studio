@@ -100,7 +100,7 @@ export default function StudyPlannerView() {
   }, [formInput, generatedPlan, currentLanguage, languageAtGeneration]);
 
 
-  const handleInputChange = (field: keyof Omit<StudyPlanGeneratorInput, 'subjectsToFocus' | 'language'>, value: string | number) => {
+  const handleInputChange = (field: keyof Omit<StudyPlanGeneratorInput, 'subjectsToFocus' | 'language'>, value: string | number | undefined) => {
     setFormInput(prev => ({ ...prev, [field]: value }));
     setGeneratedPlan(null); // Clear plan if input changes
   };
@@ -164,14 +164,14 @@ export default function StudyPlannerView() {
               <div className="space-y-2">
                 <Label htmlFor="studyDurationMonths">Study Duration (Months)</Label>
                  <Select 
-                  value={String(formInput.studyDurationMonths || "")} 
-                  onValueChange={val => handleInputChange('studyDurationMonths', val ? parseInt(val) : undefined)}
+                  value={String(formInput.studyDurationMonths || "not-specified")} 
+                  onValueChange={val => handleInputChange('studyDurationMonths', val === "not-specified" ? undefined : parseInt(val))}
                   disabled={isLoading}
                 >
                   <SelectTrigger id="studyDurationMonths"><SelectValue placeholder="Select duration" /></SelectTrigger>
                   <SelectContent>
                     {[3, 6, 9, 12].map(m => <SelectItem key={m} value={String(m)}>{m} months</SelectItem>)}
-                    <SelectItem value="">Not specified</SelectItem>
+                    <SelectItem value="not-specified">Not specified</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -180,14 +180,14 @@ export default function StudyPlannerView() {
                <div className="space-y-2">
                 <Label htmlFor="hoursPerWeek">Study Hours per Week (Approx.)</Label>
                 <Select 
-                  value={String(formInput.hoursPerWeek || "")} 
-                  onValueChange={val => handleInputChange('hoursPerWeek', val ? parseInt(val) : undefined)}
+                  value={String(formInput.hoursPerWeek || "not-specified")} 
+                  onValueChange={val => handleInputChange('hoursPerWeek', val === "not-specified" ? undefined : parseInt(val))}
                   disabled={isLoading}
                 >
                   <SelectTrigger id="hoursPerWeek"><SelectValue placeholder="Select hours" /></SelectTrigger>
                   <SelectContent>
                     {[5, 10, 15, 20, 25, 30].map(h => <SelectItem key={h} value={String(h)}>{h} hours</SelectItem>)}
-                     <SelectItem value="">Not specified</SelectItem>
+                     <SelectItem value="not-specified">Not specified</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -283,3 +283,4 @@ export default function StudyPlannerView() {
     </div>
   );
 }
+
