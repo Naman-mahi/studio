@@ -14,6 +14,7 @@ import toast from 'react-hot-toast';
 import { Send, User, Bot, GraduationCap } from "lucide-react";
 import { LoadingIndicator } from "@/components/loading-indicator";
 import type { QuestionClarificationChatInput } from '@/ai/flows/question-clarification-chat';
+import { getStoredLanguage } from "./settings-view"; // Import language utility
 
 interface Message {
   id: string;
@@ -66,6 +67,7 @@ export default function TopicAiTutorView() {
   const [subject, setSubject] = useState("");
   const [topic, setTopic] = useState("");
   const [isTopicSelected, setIsTopicSelected] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState('en');
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -75,6 +77,7 @@ export default function TopicAiTutorView() {
   };
 
   useEffect(() => {
+    setCurrentLanguage(getStoredLanguage());
     try {
       const cachedSelection = localStorage.getItem(TOPIC_AI_TUTOR_SELECTION_KEY);
       if (cachedSelection) {
@@ -98,6 +101,17 @@ export default function TopicAiTutorView() {
   }, []);
 
   useEffect(() => {
+    const handleStorageChange = () => {
+      setCurrentLanguage(getStoredLanguage());
+    };
+    window.addEventListener('storage', handleStorageChange);
+    const interval = setInterval(() => {
+        const lang = getStoredLanguage();
+        if (lang !== currentLanguage) {
+            setCurrentLanguage(lang);
+        }
+    }, 1000);
+
     if (isTopicSelected && subject && topic) {
       const selectionCache: TutorSelection = { subject, topic };
       localStorage.setItem(TOPIC_AI_TUTOR_SELECTION_KEY, JSON.stringify(selectionCache));
@@ -106,14 +120,17 @@ export default function TopicAiTutorView() {
       if (messageCacheKey && messages.length > 0) {
         localStorage.setItem(messageCacheKey, JSON.stringify(messages));
       } else if (messageCacheKey && messages.length === 0) {
-        // If messages are cleared for a topic, remove from cache
         localStorage.removeItem(messageCacheKey);
       }
     }
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
     }
-  }, [messages, subject, topic, isTopicSelected]);
+     return () => {
+        window.removeEventListener('storage', handleStorageChange);
+        clearInterval(interval);
+    }
+  }, [messages, subject, topic, isTopicSelected, currentLanguage]);
 
   const handleSubjectChange = (selectedSubject: string) => {
     const oldMessageCacheKey = getCacheKey(subject, topic);
@@ -158,11 +175,13 @@ export default function TopicAiTutorView() {
 
     try {
       const previousMessagesForAI = messages.map(m => ({ role: m.role, content: m.content }));
+      const lang = getStoredLanguage();
       const payload: QuestionClarificationChatInput = {
         question: userMessage.content,
         subject: subject,
         topic: topic,
         previousMessages: previousMessagesForAI.slice(-10),
+        language: lang,
       };
       const aiResponse = await askTopicTutor(payload);
       
@@ -187,7 +206,7 @@ export default function TopicAiTutorView() {
         <Card className="shadow-lg animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ease-out">
           <CardHeader>
             <CardTitle className="font-headline">Select Subject and Topic</CardTitle>
-            <CardDescription>Choose a subject and topic to start a focused tutoring session.</CardDescription>
+            <CardDescription>Choose a subject and topic to start a focused tutoring session. AI responses will attempt to use your preferred language setting.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
@@ -229,11 +248,10 @@ export default function TopicAiTutorView() {
             <div className="flex justify-between items-start">
                 <div>
                     <CardTitle className="font-headline">AI Tutor: {topic} ({subject})</CardTitle>
-                    <CardDescription>Ask questions about {topic}. The AI will guide you.</CardDescription>
+                    <CardDescription>Ask questions about {topic}. The AI will guide you. AI responses will attempt to use your preferred language setting.</CardDescription>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => {
                     setIsTopicSelected(false);
-                    // Messages are not cleared here, they stay cached for when user re-selects
                 }}>
                     Change Topic
                 </Button>

@@ -22,6 +22,7 @@ const QuestionClarificationChatInputSchema = z.object({
     role: z.enum(['user', 'assistant']),
     content: z.string(),
   })).optional().describe('Previous messages in the conversation.'),
+  language: z.string().optional().default('en').describe('The preferred language for the AI response (e.g., "en", "hi"). Defaults to English.'),
 });
 export type QuestionClarificationChatInput = z.infer<typeof QuestionClarificationChatInputSchema>;
 
@@ -41,9 +42,10 @@ const prompt = ai.definePrompt({
   prompt: `You are an AI tutor helping students understand and solve problems related to RRB NTPC exams.
   Your goal is to clarify the student's questions and guide them towards the solution, not to directly give them the answer.
   Use the context and previous messages to understand the student's current understanding and provide relevant assistance.
+  Please provide your response in {{language}} if possible. If not, English is acceptable.
 
   {{#if subject}}
-  The student is focusing on Subject: {{{subject}}}{{#if topic}} and Topic: {{{topic}}}{{/if}}. Tailor your guidance accordingly.
+  The student is focusing on Subject: {{{subject}}}{{#if topic}}}, Topic: {{{topic}}}{{/if}}. Tailor your guidance accordingly.
   {{else}}
   You are acting as a general AI tutor.
   {{/if}}
@@ -81,9 +83,9 @@ const questionClarificationChatFlow = ai.defineFlow(
     const result = await prompt(input);
     if (!result.output || typeof result.output.answer !== 'string') {
       console.error('AI tutor (questionClarificationChatFlow) prompt did not return a valid structured output.', { input, output: result.output });
-      return { answer: "I'm currently unable to process this request for the selected topic/question. Please try rephrasing or asking something different." };
+      const defaultErrorMessage = input.language === 'hi' ? "मैं वर्तमान में इस अनुरोध पर कार्रवाई करने में असमर्थ हूं। कृपया पुनः प्रयास करें या कुछ और पूछें।" : "I'm currently unable to process this request. Please try rephrasing or asking something different.";
+      return { answer: defaultErrorMessage };
     }
     return result.output;
   }
 );
-

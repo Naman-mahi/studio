@@ -1,3 +1,4 @@
+
 // Implemented Genkit flow for AI-powered question paper solving, generating solutions and answer keys.
 
 'use server';
@@ -19,6 +20,7 @@ const SolveQuestionPaperInputSchema = z.object({
     .describe(
       'The question paper, either as text or an image data URI (data:<mimetype>;base64,<encoded_data>).'
     ),
+  language: z.string().optional().default('en').describe('The preferred language for the AI response (e.g., "en", "hi"). Defaults to English.'),
 });
 export type SolveQuestionPaperInput = z.infer<typeof SolveQuestionPaperInputSchema>;
 
@@ -37,10 +39,11 @@ const prompt = ai.definePrompt({
   input: {schema: SolveQuestionPaperInputSchema},
   output: {schema: SolveQuestionPaperOutputSchema},
   prompt: `You are an expert in solving RRB NTPC exam question papers.
+  Please provide your response (solutions and answer key) in {{language}} if possible. If not, English is acceptable.
 
-You will receive a question paper as input, and your task is to generate the solutions to the questions and create an answer key.
+  You will receive a question paper as input, and your task is to generate the solutions to the questions and create an answer key.
 
-Question Paper: {{{questionPaper}}}`,
+  Question Paper: {{{questionPaper}}}`,
 });
 
 const solveQuestionPaperFlow = ai.defineFlow(

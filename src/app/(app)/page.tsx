@@ -4,7 +4,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Cpu, ListChecks, MessagesSquare, NotebookText, MessageCircleQuestion, Newspaper, Trash2, GraduationCap } from "lucide-react";
+import { Cpu, ListChecks, MessagesSquare, NotebookText, MessageCircleQuestion, Newspaper, Trash2, GraduationCap, Settings } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +19,7 @@ import {
 import toast from 'react-hot-toast';
 import { useState } from "react";
 import StudyStreakTracker from "@/components/study-streak-tracker"; 
+import { USER_LANGUAGE_PREFERENCE_KEY } from "@/components/settings-view";
 
 const CACHE_KEYS = [
   "ai-qa-chat-messages",
@@ -28,8 +29,8 @@ const CACHE_KEYS = [
   "practice-questions-cache",
   "current-affairs-cache",
   "studyStreakData",
-  "topic-ai-tutor-selection", // Added for topic tutor
-  // Add keys for topic-ai-tutor-messages dynamically or manage them via a prefix
+  "topic-ai-tutor-selection",
+  USER_LANGUAGE_PREFERENCE_KEY, // Added for language preference
 ];
 
 const featureCardColors = [
@@ -40,6 +41,7 @@ const featureCardColors = [
   "bg-amber-500 text-black",
   "bg-teal-600 text-white",
   "bg-indigo-600 text-white",
+  "bg-slate-600 text-white", // Added one more color for settings
 ];
 
 interface FeatureCardProps {
@@ -105,8 +107,6 @@ export default function DashboardPage() {
       toast.error("Could not clear all cached data. Please try again.");
     }
     setIsAlertOpen(false);
-    // Consider a softer refresh or state update if full reload is too disruptive
-    // For now, reload ensures all components re-fetch or re-initialize state
     window.location.reload(); 
   };
 
@@ -118,6 +118,7 @@ export default function DashboardPage() {
     { icon: MessagesSquare, title: "Chat Support (General)", description: "Engage with our AI for general question clarification and discussion.", linkHref: "/chat-support", linkText: "Start Chatting", titleForColorBox: "General AI Chat" },
     { icon: NotebookText, title: "Past Papers", description: "Review previous RRB NTPC exam papers to understand patterns.", linkHref: "/past-papers", linkText: "Explore Papers", titleForColorBox: "Past Papers" },
     { icon: Newspaper, title: "Current Affairs", description: "Stay updated with the latest current events relevant for your exams.", linkHref: "/current-affairs", linkText: "Get Updates", titleForColorBox: "Current Affairs" },
+    { icon: Settings, title: "Settings", description: "Customize your application experience, like AI language preference.", linkHref: "/settings", linkText: "Go to Settings", titleForColorBox: "Settings" },
   ];
 
 
@@ -142,7 +143,7 @@ export default function DashboardPage() {
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
                   This action will permanently delete all cached data from this application in your browser,
-                  including chat histories, saved inputs, generated content, study streak progress, and topic selections. This cannot be undone.
+                  including chat histories, saved inputs, generated content, study streak progress, topic selections, and language preferences. This cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

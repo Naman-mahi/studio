@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A general question & answer AI chat assistant.
@@ -16,6 +17,7 @@ const GeneralQaChatInputSchema = z.object({
     role: z.enum(['user', 'assistant']),
     content: z.string(),
   })).optional().describe('Previous messages in the conversation.'),
+  language: z.string().optional().default('en').describe('The preferred language for the AI response (e.g., "en", "hi"). Defaults to English.'),
 });
 export type GeneralQaChatInput = z.infer<typeof GeneralQaChatInputSchema>;
 
@@ -33,6 +35,7 @@ const prompt = ai.definePrompt({
   input: {schema: GeneralQaChatInputSchema},
   output: {schema: GeneralQaChatOutputSchema},
   prompt: `You are a helpful AI assistant for RRB NTPC exam aspirants. Answer the user's questions directly and accurately. If the question is outside the scope of RRB NTPC preparation or general knowledge suitable for such exams, politely state that.
+  Please provide your response in {{language}} if possible. If not, English is acceptable.
 
 {{#if previousMessages}}
 Previous Conversation:

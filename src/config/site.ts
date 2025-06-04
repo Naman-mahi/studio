@@ -1,6 +1,6 @@
 
 import type { LucideIcon } from 'lucide-react';
-import { LayoutDashboard, NotebookText, Cpu, MessagesSquare, ListChecks, MessageCircleQuestion, Newspaper, GraduationCap } from 'lucide-react';
+import { LayoutDashboard, NotebookText, Cpu, MessagesSquare, ListChecks, MessageCircleQuestion, Newspaper, GraduationCap, Settings } from 'lucide-react';
 
 export type NavItem = {
   title: string;
@@ -31,7 +31,7 @@ export const navItems: NavItem[] = [
     icon: ListChecks,
   },
   {
-    title: 'Topic AI Tutor', // New Nav Item
+    title: 'Topic AI Tutor',
     href: '/topic-ai-tutor',
     icon: GraduationCap,
   },
@@ -41,7 +41,7 @@ export const navItems: NavItem[] = [
     icon: MessageCircleQuestion,
   },
   {
-    title: 'Chat Support (General)', // Renamed for clarity
+    title: 'Chat Support (General)',
     href: '/chat-support',
     icon: MessagesSquare,
   },
@@ -49,5 +49,10 @@ export const navItems: NavItem[] = [
     title: 'Current Affairs',
     href: '/current-affairs',
     icon: Newspaper,
+  },
+  {
+    title: 'Settings',
+    href: '/settings',
+    icon: Settings,
   },
 ];

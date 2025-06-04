@@ -12,6 +12,7 @@ import { generatePracticeQuestions } from "@/app/(app)/practice-questions/action
 import type { PracticeQuestionGeneratorOutput } from "@/ai/flows/practice-question-generator";
 import toast from 'react-hot-toast';
 import { LoadingIndicator } from "@/components/loading-indicator";
+import { getStoredLanguage } from "./settings-view"; // Import language utility
 
 interface GeneratedQuestion {
   question: string;
@@ -65,8 +66,10 @@ export default function PracticeQuestionsView() {
   const [subject, setSubject] = useState("");
   const [topic, setTopic] = useState("");
   const [numQuestions, setNumQuestions] = useState(5);
+  const [currentLanguage, setCurrentLanguage] = useState('en');
 
   useEffect(() => {
+    setCurrentLanguage(getStoredLanguage());
     try {
       const cachedData = localStorage.getItem(PRACTICE_QUESTIONS_CACHE_KEY);
       if (cachedData) {
@@ -86,13 +89,28 @@ export default function PracticeQuestionsView() {
   }, []);
 
   useEffect(() => {
+    const handleStorageChange = () => {
+      setCurrentLanguage(getStoredLanguage());
+    };
+    window.addEventListener('storage', handleStorageChange);
+    const interval = setInterval(() => {
+        const lang = getStoredLanguage();
+        if (lang !== currentLanguage) {
+            setCurrentLanguage(lang);
+        }
+    }, 1000);
+
     const cacheData: PracticeQuestionsCache = { subject, topic, numQuestions, generatedQuestions };
     try {
       localStorage.setItem(PRACTICE_QUESTIONS_CACHE_KEY, JSON.stringify(cacheData));
     } catch (error) {
       console.error("Failed to save practice questions to localStorage", error);
     }
-  }, [subject, topic, numQuestions, generatedQuestions]);
+    return () => {
+        window.removeEventListener('storage', handleStorageChange);
+        clearInterval(interval);
+    }
+  }, [subject, topic, numQuestions, generatedQuestions, currentLanguage]);
 
   const handleSubjectChange = (selectedSubject: string) => {
     setSubject(selectedSubject);
@@ -124,10 +142,12 @@ export default function PracticeQuestionsView() {
     setIsLoading(true);
 
     try {
+      const lang = getStoredLanguage();
       const output: PracticeQuestionGeneratorOutput = await generatePracticeQuestions({
         topic,
         subject,
         numQuestions,
+        language: lang,
       });
       setGeneratedQuestions(output.questions);
       if (output.questions.length === 0) {
@@ -149,7 +169,7 @@ export default function PracticeQuestionsView() {
         <CardHeader>
           <CardTitle className="font-headline">Generate Custom Quiz</CardTitle>
           <CardDescription>
-            Select a subject, topic, and the number of questions you want to generate for your RRB NTPC 2025 practice. Your selections and generated questions are cached locally.
+            Select a subject, topic, and the number of questions you want to generate for your RRB NTPC 2025 practice. Your selections and generated questions are cached locally. AI responses will attempt to use your preferred language setting.
           </CardDescription>
         </CardHeader>
         <CardContent>

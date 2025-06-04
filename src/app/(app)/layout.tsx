@@ -14,12 +14,29 @@ import {
   SidebarMenuButton,
   SidebarInset,
   SidebarTrigger,
+  useSidebar, // Import useSidebar
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/logo';
 import { navItems } from '@/config/site';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ThemeToggleButton } from '@/components/theme-toggle-button';
+
+function AppSidebarHeader() {
+  const { state } = useSidebar(); // Use the hook to get sidebar state
+
+  return (
+    <SidebarHeader className="p-4">
+      <Link href="/" className="flex items-center gap-2">
+        <Logo className="w-8 h-8 text-primary shrink-0" />
+        {state !== 'collapsed' && ( // Conditionally render text
+          <h1 className="text-xl font-headline font-semibold truncate">NTPC Prep Ace</h1>
+        )}
+      </Link>
+    </SidebarHeader>
+  );
+}
+
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -28,12 +45,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <SidebarProvider defaultOpen>
       <div className="flex min-h-screen">
         <Sidebar className="border-r" collapsible="icon">
-          <SidebarHeader className="p-4">
-            <Link href="/" className="flex items-center gap-2">
-              <Logo className="w-8 h-8 text-primary" />
-              <h1 className="text-xl font-headline font-semibold">NTPC Prep Ace</h1>
-            </Link>
-          </SidebarHeader>
+          <AppSidebarHeader /> {/* Use the new header component */}
           <SidebarContent>
             <ScrollArea className="h-[calc(100vh-4rem)]"> {/* Adjust height based on header */}
               <SidebarMenu>
@@ -57,7 +69,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </Sidebar>
         <SidebarInset className="flex-1">
           <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
-            <div> {/* Removed md:hidden to make trigger visible on all screens */}
+            <div>
               <SidebarTrigger />
             </div>
             <div className="flex-1">

@@ -10,6 +10,7 @@ import { generateCurrentAffairs } from "@/app/(app)/current-affairs/actions";
 import type { CurrentAffairsGeneratorInput, CurrentAffairsGeneratorOutput } from '@/ai/flows/current-affairs-generator';
 import toast from 'react-hot-toast';
 import { LoadingIndicator } from "@/components/loading-indicator";
+import { getStoredLanguage } from "./settings-view"; // Import language utility
 
 const currentAffairsCategories = [
   "General",
@@ -25,6 +26,7 @@ const currentAffairsCategories = [
 interface CurrentAffairsCache {
   selectedCategory: CurrentAffairsGeneratorInput['category'];
   summary: string | null;
+  language: string; // To store language at time of caching
 }
 
 const CURRENT_AFFAIRS_CACHE_KEY = "current-affairs-cache";
@@ -34,14 +36,22 @@ export default function CurrentAffairsView() {
   const [isLoading, setIsLoading] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<CurrentAffairsGeneratorInput['category']>('General');
+  const [currentLanguage, setCurrentLanguage] = useState('en');
 
   useEffect(() => {
+    const initialLang = getStoredLanguage();
+    setCurrentLanguage(initialLang);
     try {
       const cachedData = localStorage.getItem(CURRENT_AFFAIRS_CACHE_KEY);
       if (cachedData) {
         const parsedCache: CurrentAffairsCache = JSON.parse(cachedData);
         setSelectedCategory(parsedCache.selectedCategory || 'General');
-        setSummary(parsedCache.summary);
+        // Only load summary if language matches
+        if (parsedCache.language === initialLang) {
+          setSummary(parsedCache.summary);
+        } else {
+          setSummary(null); // Clear summary if language mismatch
+        }
       }
     } catch (error) {
       console.error("Failed to load current affairs cache from localStorage", error);
@@ -49,13 +59,37 @@ export default function CurrentAffairsView() {
   }, []);
 
   useEffect(() => {
-    const cacheData: CurrentAffairsCache = { selectedCategory, summary };
-    try {
-      localStorage.setItem(CURRENT_AFFAIRS_CACHE_KEY, JSON.stringify(cacheData));
-    } catch (error) {
-      console.error("Failed to save current affairs to localStorage", error);
+    const handleStorageChange = () => {
+      const newLang = getStoredLanguage();
+      if (newLang !== currentLanguage) {
+        setCurrentLanguage(newLang);
+        setSummary(null); // Clear summary if language changes
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    const interval = setInterval(() => {
+        const lang = getStoredLanguage();
+        if (lang !== currentLanguage) {
+            setCurrentLanguage(lang);
+            setSummary(null);
+        }
+    }, 1000);
+
+    if (summary) { // Only cache if there's a summary
+        const cacheData: CurrentAffairsCache = { selectedCategory, summary, language: currentLanguage };
+        try {
+          localStorage.setItem(CURRENT_AFFAIRS_CACHE_KEY, JSON.stringify(cacheData));
+        } catch (error) {
+          console.error("Failed to save current affairs to localStorage", error);
+        }
+    } else { // If summary is null (e.g. after language change), remove specific cache
+        localStorage.removeItem(CURRENT_AFFAIRS_CACHE_KEY);
     }
-  }, [selectedCategory, summary]);
+     return () => {
+        window.removeEventListener('storage', handleStorageChange);
+        clearInterval(interval);
+    }
+  }, [selectedCategory, summary, currentLanguage]);
 
   const handleCategoryChange = (value: CurrentAffairsGeneratorInput['category']) => {
     setSelectedCategory(value);
@@ -66,10 +100,12 @@ export default function CurrentAffairsView() {
     event.preventDefault();
     setIsLoading(true);
     setSummary(null);
+    const lang = getStoredLanguage();
 
     try {
       const output: CurrentAffairsGeneratorOutput = await generateCurrentAffairs({
         category: selectedCategory,
+        language: lang,
       });
       setSummary(output.summary);
       if (!output.summary) {
@@ -89,7 +125,7 @@ export default function CurrentAffairsView() {
         <CardHeader>
           <CardTitle className="font-headline">Get Recent Updates</CardTitle>
           <CardDescription>
-            Select a category to get a summary of recent current affairs relevant for RRB NTPC 2025 exams. Your selection and results are cached locally.
+            Select a category to get a summary of recent current affairs relevant for RRB NTPC 2025 exams. Your selection and results are cached locally. AI responses will attempt to use your preferred language setting.
           </CardDescription>
         </CardHeader>
         <CardContent>

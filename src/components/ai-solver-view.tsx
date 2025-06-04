@@ -12,6 +12,7 @@ import { solveQuestionPaper } from "@/app/(app)/ai-solver/actions";
 import type { SolveQuestionPaperOutput } from "@/ai/flows/ai-question-solver";
 import toast from 'react-hot-toast';
 import { LoadingIndicator } from "@/components/loading-indicator";
+import { getStoredLanguage } from "./settings-view"; // Import language utility
 
 const AI_SOLVER_CACHED_INPUT_KEY = "ai-solver-cached-input";
 const AI_SOLVER_CACHED_RESULT_KEY = "ai-solver-cached-result";
@@ -21,8 +22,11 @@ export default function AiSolverView() {
   const [result, setResult] = useState<SolveQuestionPaperOutput | null>(null);
   const [questionText, setQuestionText] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [currentLanguage, setCurrentLanguage] = useState('en');
+
 
   useEffect(() => {
+    setCurrentLanguage(getStoredLanguage());
     try {
       const cachedInput = localStorage.getItem(AI_SOLVER_CACHED_INPUT_KEY);
       const cachedResult = localStorage.getItem(AI_SOLVER_CACHED_RESULT_KEY);
@@ -30,7 +34,7 @@ export default function AiSolverView() {
       if (cachedInput) {
         setQuestionText(cachedInput);
       }
-      if (cachedResult && cachedInput) { // Only load result if input matches
+      if (cachedResult && cachedInput) { 
         setResult(JSON.parse(cachedResult));
       }
     } catch (error) {
@@ -39,6 +43,25 @@ export default function AiSolverView() {
   }, []);
 
   useEffect(() => {
+    const handleStorageChange = () => {
+      const newLang = getStoredLanguage();
+      if (newLang !== currentLanguage) {
+        setCurrentLanguage(newLang);
+        setResult(null); // Clear result if language changes, as it might be in old language
+        localStorage.removeItem(AI_SOLVER_CACHED_RESULT_KEY);
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+     const interval = setInterval(() => {
+        const lang = getStoredLanguage();
+        if (lang !== currentLanguage) {
+            setCurrentLanguage(lang);
+            setResult(null); 
+            localStorage.removeItem(AI_SOLVER_CACHED_RESULT_KEY);
+        }
+    }, 1000);
+
+
     if (questionText) {
       try {
         localStorage.setItem(AI_SOLVER_CACHED_INPUT_KEY, questionText);
@@ -46,23 +69,28 @@ export default function AiSolverView() {
         console.error("Failed to save input to localStorage", error);
       }
     }
-    if (result && questionText) { // Only save result if there's corresponding input text
+    if (result && questionText) { 
       try {
         localStorage.setItem(AI_SOLVER_CACHED_RESULT_KEY, JSON.stringify(result));
       } catch (error) {
         console.error("Failed to save result to localStorage", error);
       }
     }
-  }, [questionText, result]);
+     return () => {
+        window.removeEventListener('storage', handleStorageChange);
+        clearInterval(interval);
+    }
+  }, [questionText, result, currentLanguage]);
 
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
-    setResult(null); // Clear previous result before new submission
+    setResult(null); 
 
     let paperContent = questionText;
     let isFileProcessing = false;
+    const lang = getStoredLanguage();
 
     if (file) {
       isFileProcessing = true;
@@ -72,9 +100,9 @@ export default function AiSolverView() {
         reader.onload = async () => {
           try {
             const base64Image = reader.result as string;
-            const output = await solveQuestionPaper({ questionPaper: base64Image });
+            const output = await solveQuestionPaper({ questionPaper: base64Image, language: lang });
             setResult(output);
-            localStorage.setItem(AI_SOLVER_CACHED_RESULT_KEY, JSON.stringify(output));
+            // localStorage.setItem(AI_SOLVER_CACHED_RESULT_KEY, JSON.stringify(output)); // Result will be cached by useEffect
             localStorage.removeItem(AI_SOLVER_CACHED_INPUT_KEY); 
           } catch (e: any) {
             toast.error(e.message || "Failed to process image.");
@@ -105,10 +133,10 @@ export default function AiSolverView() {
 
     if (!isFileProcessing || (file && file.type === "text/plain")) {
         try {
-          const output = await solveQuestionPaper({ questionPaper: paperContent });
+          const output = await solveQuestionPaper({ questionPaper: paperContent, language: lang });
           setResult(output);
-          localStorage.setItem(AI_SOLVER_CACHED_INPUT_KEY, paperContent);
-          localStorage.setItem(AI_SOLVER_CACHED_RESULT_KEY, JSON.stringify(output));
+          // localStorage.setItem(AI_SOLVER_CACHED_INPUT_KEY, paperContent); // Input cached by useEffect
+          // localStorage.setItem(AI_SOLVER_CACHED_RESULT_KEY, JSON.stringify(output)); // Result cached by useEffect
         } catch (e: any) {
           toast.error(e.message || "An unexpected error occurred.");
         } finally {
@@ -133,7 +161,7 @@ export default function AiSolverView() {
         <CardHeader>
           <CardTitle className="font-headline">Upload or Enter Question Paper</CardTitle>
           <CardDescription>
-            Provide question paper content as text or upload an image/text file. The AI will generate solutions and an answer key. Your input and results are cached locally.
+            Provide question paper content as text or upload an image/text file. The AI will generate solutions and an answer key. Your input and results are cached locally. AI responses will attempt to use your preferred language setting.
           </CardDescription>
         </CardHeader>
         <CardContent>

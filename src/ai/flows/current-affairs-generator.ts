@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Generates current affairs summaries.
@@ -21,6 +22,7 @@ const CurrentAffairsGeneratorInputSchema = z.object({
       "Awards & Honors",
       "Summits & Conferences"
     ]).optional().default("General").describe('Category of current affairs. Defaults to General.'),
+  language: z.string().optional().default('en').describe('The preferred language for the AI response (e.g., "en", "hi"). Defaults to English.'),
 });
 export type CurrentAffairsGeneratorInput = z.infer<typeof CurrentAffairsGeneratorInputSchema>;
 
@@ -39,6 +41,7 @@ const prompt = ai.definePrompt({
   output: {schema: CurrentAffairsGeneratorOutputSchema},
   prompt: `You are a current affairs expert. Generate a concise summary of recent (last 1-2 weeks) current affairs relevant to the RRB NTPC 2025 exam.
 Focus on the category: {{{category}}}.
+Please provide your summary in {{language}} if possible. If not, English is acceptable.
 The summary should be factual, brief, and easy to understand for exam preparation. Present the information in bullet points or a well-structured paragraph.
 Ensure the information is as up-to-date as possible within your knowledge cut-off.
 Prioritize events of national and international importance, major government schemes, significant scientific developments, major sports achievements, and important economic updates relevant to India.`,

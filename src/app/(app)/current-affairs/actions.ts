@@ -1,3 +1,4 @@
+
 "use server";
 
 import { generateCurrentAffairs as generateCurrentAffairsFlow } from '@/ai/flows/current-affairs-generator';

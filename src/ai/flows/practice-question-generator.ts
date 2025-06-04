@@ -17,6 +17,7 @@ const PracticeQuestionGeneratorInputSchema = z.object({
   topic: z.string().describe('The topic for which to generate practice questions (e.g., Algebra, History).'),
   subject: z.string().describe('The subject area (e.g., Mathematics, General Awareness).'),
   numQuestions: z.number().default(5).describe('The number of practice questions to generate.'),
+  language: z.string().optional().default('en').describe('The preferred language for the AI response (e.g., "en", "hi"). Defaults to English.'),
 });
 
 export type PracticeQuestionGeneratorInput = z.infer<typeof PracticeQuestionGeneratorInputSchema>;
@@ -42,6 +43,7 @@ const practiceQuestionPrompt = ai.definePrompt({
   input: {schema: PracticeQuestionGeneratorInputSchema},
   output: {schema: PracticeQuestionGeneratorOutputSchema},
   prompt: `You are an expert in generating practice questions for the RRB NTPC 2025 exam.
+  Please generate questions, answers, and explanations in {{language}} if possible. If not, English is acceptable.
 
   Generate {{{numQuestions}}} practice questions, their answers, and concise explanations based on the specified topic and subject.
   The questions should be relevant for the RRB NTPC 2025 Exams.

@@ -11,6 +11,7 @@ import { questionClarificationChat } from "@/app/(app)/chat-support/actions";
 import toast from 'react-hot-toast';
 import { Send, User, Bot } from "lucide-react";
 import { LoadingIndicator } from "@/components/loading-indicator";
+import { getStoredLanguage } from "./settings-view"; // Import language utility
 
 interface Message {
   id: string;
@@ -25,8 +26,10 @@ export default function ChatSupportView() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [currentLanguage, setCurrentLanguage] = useState('en');
 
   useEffect(() => {
+    setCurrentLanguage(getStoredLanguage());
     try {
       const cachedMessages = localStorage.getItem(CHAT_SUPPORT_MESSAGES_KEY);
       if (cachedMessages) {
@@ -38,6 +41,18 @@ export default function ChatSupportView() {
   }, []);
 
   useEffect(() => {
+     // Update language if it changes in settings
+    const handleStorageChange = () => {
+      setCurrentLanguage(getStoredLanguage());
+    };
+    window.addEventListener('storage', handleStorageChange);
+     const interval = setInterval(() => {
+        const lang = getStoredLanguage();
+        if (lang !== currentLanguage) {
+            setCurrentLanguage(lang);
+        }
+    }, 1000);
+
     if (messages.length > 0) {
       try {
         localStorage.setItem(CHAT_SUPPORT_MESSAGES_KEY, JSON.stringify(messages));
@@ -49,7 +64,11 @@ export default function ChatSupportView() {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
     }
-  }, [messages]);
+     return () => {
+        window.removeEventListener('storage', handleStorageChange);
+        clearInterval(interval);
+    }
+  }, [messages, currentLanguage]);
   
   const handleSubmit = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
@@ -66,10 +85,12 @@ export default function ChatSupportView() {
 
     try {
       const previousMessagesForAI = messages.map(m => ({ role: m.role, content: m.content }));
+      const lang = getStoredLanguage();
       // For general chat support, we don't pass subject or topic.
       const aiResponse = await questionClarificationChat({
         question: userMessage.content,
         previousMessages: previousMessagesForAI.slice(-10), 
+        language: lang,
       });
       
       const assistantMessage: Message = {
@@ -97,7 +118,7 @@ export default function ChatSupportView() {
       <Card className="flex-grow flex flex-col shadow-lg animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ease-out">
         <CardHeader>
           <CardTitle className="font-headline">Chat with General AI Tutor</CardTitle>
-          <CardDescription>Ask general questions about RRB NTPC topics, clarify doubts, or discuss problems. Chat history is saved locally.</CardDescription>
+          <CardDescription>Ask general questions about RRB NTPC topics, clarify doubts, or discuss problems. Chat history is saved locally. AI responses will attempt to use your preferred language setting.</CardDescription>
         </CardHeader>
         <CardContent className="flex-grow flex flex-col p-0">
           <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>

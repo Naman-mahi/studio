@@ -11,6 +11,7 @@ import { askGeneralQuestion } from "@/app/(app)/ai-qa-chat/actions";
 import toast from 'react-hot-toast';
 import { Send, User, Bot } from "lucide-react";
 import { LoadingIndicator } from "@/components/loading-indicator";
+import { getStoredLanguage } from "./settings-view"; // Import language utility
 
 interface Message {
   id: string;
@@ -25,8 +26,10 @@ export default function AiQaChatView() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [currentLanguage, setCurrentLanguage] = useState('en');
 
   useEffect(() => {
+    setCurrentLanguage(getStoredLanguage());
     try {
       const cachedMessages = localStorage.getItem(AI_QA_CHAT_MESSAGES_KEY);
       if (cachedMessages) {
@@ -38,6 +41,21 @@ export default function AiQaChatView() {
   }, []);
 
   useEffect(() => {
+    // Update language if it changes in settings
+    const handleStorageChange = () => {
+      setCurrentLanguage(getStoredLanguage());
+    };
+    window.addEventListener('storage', handleStorageChange); // Listen for changes from other tabs
+    
+    // Also update if this specific key changes
+    const interval = setInterval(() => {
+        const lang = getStoredLanguage();
+        if (lang !== currentLanguage) {
+            setCurrentLanguage(lang);
+        }
+    }, 1000);
+
+
     if (messages.length > 0) {
       try {
         localStorage.setItem(AI_QA_CHAT_MESSAGES_KEY, JSON.stringify(messages));
@@ -49,7 +67,11 @@ export default function AiQaChatView() {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
     }
-  }, [messages]);
+    return () => {
+        window.removeEventListener('storage', handleStorageChange);
+        clearInterval(interval);
+    }
+  }, [messages, currentLanguage]);
   
   const handleSubmit = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
@@ -66,9 +88,11 @@ export default function AiQaChatView() {
 
     try {
       const previousMessagesForAI = messages.map(m => ({ role: m.role, content: m.content }));
+      const lang = getStoredLanguage(); // Get latest language at time of sending
       const aiResponse = await askGeneralQuestion({
         question: userMessage.content,
         previousMessages: previousMessagesForAI.slice(-10), // Send last 10 messages for context
+        language: lang,
       });
       
       const assistantMessage: Message = {
@@ -96,7 +120,7 @@ export default function AiQaChatView() {
       <Card className="flex-grow flex flex-col shadow-lg animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ease-out">
         <CardHeader>
           <CardTitle className="font-headline">Ask the AI Assistant</CardTitle>
-          <CardDescription>Get direct answers to your questions about RRB NTPC topics or general knowledge. Chat history is saved locally.</CardDescription>
+          <CardDescription>Get direct answers to your questions about RRB NTPC topics or general knowledge. Chat history is saved locally. AI responses will attempt to use your preferred language setting.</CardDescription>
         </CardHeader>
         <CardContent className="flex-grow flex flex-col p-0">
           <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
