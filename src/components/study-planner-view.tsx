@@ -101,7 +101,11 @@ export default function StudyPlannerView() {
 
 
   const handleInputChange = (field: keyof Omit<StudyPlanGeneratorInput, 'subjectsToFocus' | 'language'>, value: string | number | undefined) => {
-    setFormInput(prev => ({ ...prev, [field]: value }));
+     let processedValue = value;
+    if (field === 'studyDurationMonths' || field === 'hoursPerWeek') {
+        processedValue = value === "not-specified" ? undefined : (typeof value === 'string' ? parseInt(value, 10) : value);
+    }
+    setFormInput(prev => ({ ...prev, [field]: processedValue }));
     setGeneratedPlan(null); // Clear plan if input changes
   };
 
@@ -159,16 +163,17 @@ export default function StudyPlannerView() {
                   onChange={e => handleInputChange('targetExam', e.target.value)} 
                   disabled={isLoading}
                   placeholder="e.g., RRB NTPC 2025"
+                  suppressHydrationWarning
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="studyDurationMonths">Study Duration (Months)</Label>
                  <Select 
                   value={String(formInput.studyDurationMonths || "not-specified")} 
-                  onValueChange={val => handleInputChange('studyDurationMonths', val === "not-specified" ? undefined : parseInt(val))}
+                  onValueChange={val => handleInputChange('studyDurationMonths', val)}
                   disabled={isLoading}
                 >
-                  <SelectTrigger id="studyDurationMonths"><SelectValue placeholder="Select duration" /></SelectTrigger>
+                  <SelectTrigger id="studyDurationMonths" suppressHydrationWarning><SelectValue placeholder="Select duration" /></SelectTrigger>
                   <SelectContent>
                     {[3, 6, 9, 12].map(m => <SelectItem key={m} value={String(m)}>{m} months</SelectItem>)}
                     <SelectItem value="not-specified">Not specified</SelectItem>
@@ -181,10 +186,10 @@ export default function StudyPlannerView() {
                 <Label htmlFor="hoursPerWeek">Study Hours per Week (Approx.)</Label>
                 <Select 
                   value={String(formInput.hoursPerWeek || "not-specified")} 
-                  onValueChange={val => handleInputChange('hoursPerWeek', val === "not-specified" ? undefined : parseInt(val))}
+                  onValueChange={val => handleInputChange('hoursPerWeek', val)}
                   disabled={isLoading}
                 >
-                  <SelectTrigger id="hoursPerWeek"><SelectValue placeholder="Select hours" /></SelectTrigger>
+                  <SelectTrigger id="hoursPerWeek" suppressHydrationWarning><SelectValue placeholder="Select hours" /></SelectTrigger>
                   <SelectContent>
                     {[5, 10, 15, 20, 25, 30].map(h => <SelectItem key={h} value={String(h)}>{h} hours</SelectItem>)}
                      <SelectItem value="not-specified">Not specified</SelectItem>
@@ -200,11 +205,12 @@ export default function StudyPlannerView() {
                   placeholder="e.g., Algebra, Indian History, Current Affairs (comma-separated)"
                   disabled={isLoading}
                   rows={2}
+                  suppressHydrationWarning
                 />
                  <p className="text-xs text-muted-foreground">Separate multiple subjects/topics with a comma.</p>
               </div>
             </div>
-            <Button type="submit" disabled={isLoading} className="w-full md:w-auto shadow-md hover:shadow-lg">
+            <Button type="submit" disabled={isLoading} className="w-full md:w-auto shadow-md hover:shadow-lg" suppressHydrationWarning>
               {isLoading ? <LoadingIndicator size={20} className="mr-2" /> : <Sparkles className="mr-2 h-5 w-5"/>}
               Generate Plan
             </Button>
