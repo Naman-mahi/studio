@@ -4,7 +4,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import Image from "next/image";
 import { Lightbulb, CheckCircle, Zap, Trash2, Newspaper, NotebookText, ListChecks, MessageCircleQuestion, MessagesSquare, Cpu } from "lucide-react";
 import {
   AlertDialog,
@@ -19,9 +18,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import StudyStreakTracker from "@/components/study-streak-tracker"; // Import the new component
+import StudyStreakTracker from "@/components/study-streak-tracker"; 
 
-// Define keys for localStorage items
 const CACHE_KEYS = [
   "ai-qa-chat-messages",
   "chat-support-messages",
@@ -29,9 +27,49 @@ const CACHE_KEYS = [
   "ai-solver-cached-result",
   "practice-questions-cache",
   "current-affairs-cache",
-  "studyStreakData", // Add the new key for streak data
+  "studyStreakData",
 ];
 
+const featureCardColors = [
+  "bg-sky-600 text-white",
+  "bg-emerald-600 text-white",
+  "bg-purple-600 text-white",
+  "bg-rose-600 text-white",
+  "bg-amber-500 text-black",
+  "bg-teal-600 text-white",
+];
+
+interface FeatureCardProps {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  linkHref: string;
+  linkText: string;
+  bgColorClass: string;
+  titleForColorBox: string;
+}
+
+function FeatureCard({ icon: Icon, title, description, linkHref, linkText, bgColorClass, titleForColorBox }: FeatureCardProps) {
+  return (
+    <Card className="flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 font-headline text-xl md:text-2xl">
+          <Icon className="text-accent w-6 h-6 md:w-7 md:h-7" />
+          {title}
+        </CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col flex-grow p-6 pt-0">
+        <div className={`h-40 rounded-md mb-4 flex items-center justify-center ${bgColorClass}`}>
+          <h3 className="text-xl font-semibold text-center px-2">{titleForColorBox}</h3>
+        </div>
+        <Button asChild className="w-full mt-auto">
+          <Link href={linkHref}>{linkText}</Link>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function DashboardPage() {
   const { toast } = useToast();
@@ -53,13 +91,21 @@ export default function DashboardPage() {
       });
     }
     setIsAlertOpen(false);
-     // Optionally, reload the page or specific components to reflect cleared state
      window.location.reload(); 
   };
 
+  const features = [
+    { icon: Cpu, title: "AI Question Solver", description: "Upload question papers and get AI-powered solutions and answer keys.", linkHref: "/ai-solver", linkText: "Try AI Solver", titleForColorBox: "AI Solver" },
+    { icon: ListChecks, title: "Targeted Practice", description: "Generate practice questions based on specific RRB NTPC topics and subjects.", linkHref: "/practice-questions", linkText: "Create Quiz", titleForColorBox: "Practice Quiz" },
+    { icon: MessagesSquare, title: "Instant Chat Support", description: "Engage with our AI tutor for question clarification and discussion.", linkHref: "/chat-support", linkText: "Start Chatting", titleForColorBox: "AI Tutor Chat" },
+    { icon: NotebookText, title: "Past Papers", description: "Review previous RRB NTPC exam papers to understand patterns.", linkHref: "/past-papers", linkText: "Explore Papers", titleForColorBox: "Past Papers" },
+    { icon: MessageCircleQuestion, title: "AI Q&A Assistant", description: "Get quick answers to your general knowledge and exam-related queries.", linkHref: "/ai-qa-chat", linkText: "Ask AI", titleForColorBox: "AI Q&A" },
+    { icon: Newspaper, title: "Current Affairs", description: "Stay updated with the latest current events relevant for your exams.", linkHref: "/current-affairs", linkText: "Get Updates", titleForColorBox: "Current Affairs" },
+  ];
+
 
   return (
-    <div className="space-y-8"> {/* Increased spacing */}
+    <div className="space-y-8">
       <section className="bg-card p-6 md:p-8 rounded-lg shadow-xl">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
           <div>
@@ -105,107 +151,23 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Study Streak Tracker Card */}
       <StudyStreakTracker />
 
       <section>
         <h2 className="text-2xl md:text-3xl font-headline font-semibold mb-6 text-foreground">Explore Features</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-headline text-xl md:text-2xl">
-                <Cpu className="text-accent w-6 h-6 md:w-7 md:h-7" />
-                AI Question Solver
-              </CardTitle>
-              <CardDescription>Upload question papers and get AI-powered solutions and answer keys.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Image src="https://placehold.co/600x400.png" alt="AI Solver illustration" data-ai-hint="artificial intelligence technology" width={600} height={400} className="rounded-md mb-4 aspect-[3/2] object-cover" />
-              <Button asChild className="w-full">
-                <Link href="/ai-solver">Try AI Solver</Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-headline text-xl md:text-2xl">
-                <ListChecks className="text-accent w-6 h-6 md:w-7 md:h-7" />
-                Targeted Practice
-              </CardTitle>
-              <CardDescription>Generate practice questions based on specific RRB NTPC topics and subjects.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Image src="https://placehold.co/600x400.png" alt="Practice questions illustration" data-ai-hint="study exam preparation" width={600} height={400} className="rounded-md mb-4 aspect-[3/2] object-cover" />
-              <Button asChild className="w-full">
-                <Link href="/practice-questions">Create Quiz</Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-headline text-xl md:text-2xl">
-                <MessagesSquare className="text-accent w-6 h-6 md:w-7 md:h-7" />
-                Instant Chat Support
-              </CardTitle>
-              <CardDescription>Engage with our AI tutor for question clarification and discussion.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Image src="https://placehold.co/600x400.png" alt="Chat support illustration" data-ai-hint="communication support" width={600} height={400} className="rounded-md mb-4 aspect-[3/2] object-cover" />
-              <Button asChild className="w-full">
-                <Link href="/chat-support">Start Chatting</Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-           <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-headline text-xl md:text-2xl">
-                <NotebookText className="text-accent w-6 h-6 md:w-7 md:h-7" />
-                Past Papers
-              </CardTitle>
-              <CardDescription>Review previous RRB NTPC exam papers to understand patterns.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Image src="https://placehold.co/600x400.png" alt="Past papers illustration" data-ai-hint="archive documents" width={600} height={400} className="rounded-md mb-4 aspect-[3/2] object-cover" />
-              <Button asChild className="w-full">
-                <Link href="/past-papers">Explore Papers</Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-headline text-xl md:text-2xl">
-                <MessageCircleQuestion className="text-accent w-6 h-6 md:w-7 md:h-7" />
-                 AI Q&A Assistant
-              </CardTitle>
-              <CardDescription>Get quick answers to your general knowledge and exam-related queries.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Image src="https://placehold.co/600x400.png" alt="AI Q&A illustration" data-ai-hint="question answer" width={600} height={400} className="rounded-md mb-4 aspect-[3/2] object-cover" />
-              <Button asChild className="w-full">
-                <Link href="/ai-qa-chat">Ask AI</Link>
-              </Button>
-            </CardContent>
-          </Card>
-          
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-headline text-xl md:text-2xl">
-                <Newspaper className="text-accent w-6 h-6 md:w-7 md:h-7" />
-                Current Affairs
-              </CardTitle>
-              <CardDescription>Stay updated with the latest current events relevant for your exams.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Image src="https://placehold.co/600x400.png" alt="Current affairs illustration" data-ai-hint="news update" width={600} height={400} className="rounded-md mb-4 aspect-[3/2] object-cover" />
-              <Button asChild className="w-full">
-                <Link href="/current-affairs">Get Updates</Link>
-              </Button>
-            </CardContent>
-          </Card>
+          {features.map((feature, index) => (
+            <FeatureCard
+              key={feature.title}
+              icon={feature.icon}
+              title={feature.title}
+              description={feature.description}
+              linkHref={feature.linkHref}
+              linkText={feature.linkText}
+              bgColorClass={featureCardColors[index % featureCardColors.length]}
+              titleForColorBox={feature.titleForColorBox}
+            />
+          ))}
         </div>
       </section>
     </div>
