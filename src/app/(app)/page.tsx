@@ -4,7 +4,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Cpu, ListChecks, MessagesSquare, NotebookText, MessageCircleQuestion, Newspaper, Settings, GraduationCap, CalendarCheck } from "lucide-react";
+import { Cpu, ListChecks, MessagesSquare, NotebookText, MessageCircleQuestion, Newspaper, Settings, GraduationCap, CalendarCheck, Copy } from "lucide-react";
 import StudyStreakTracker from "@/components/study-streak-tracker";
 
 const featureCardColors = [
@@ -15,8 +15,9 @@ const featureCardColors = [
   "bg-amber-500 text-black",
   "bg-teal-600 text-white",
   "bg-indigo-600 text-white",
-  "bg-pink-600 text-white", // Added new color for Study Planner
-  "bg-cyan-600 text-white",
+  "bg-pink-600 text-white", 
+  "bg-cyan-600 text-white", // New color for AI Flashcards
+  "bg-lime-500 text-black", // New color for Study Planner
   "bg-slate-600 text-white",
 ];
 
@@ -56,6 +57,7 @@ export default function DashboardPage() {
   const features = [
     { icon: CalendarCheck, title: "Study Planner", description: "Generate a personalized study roadmap for your exam preparation.", linkHref: "/study-planner", linkText: "Create Plan", titleForColorBox: "AI Planner" },
     { icon: ListChecks, title: "AI Quiz Generator", description: "Generate custom quizzes with varying difficulty based on specific RRB NTPC topics.", linkHref: "/ai-quiz-generator", linkText: "Create Quiz", titleForColorBox: "AI Quiz" },
+    { icon: Copy, title: "AI Flashcards", description: "Generate flashcards for quick revision of key concepts and terms.", linkHref: "/flashcards", linkText: "Make Flashcards", titleForColorBox: "AI Flashcards" },
     { icon: Cpu, title: "AI Question Solver", description: "Upload question papers and get AI-powered solutions and answer keys.", linkHref: "/ai-solver", linkText: "Try AI Solver", titleForColorBox: "AI Solver" },
     { icon: GraduationCap, title: "Topic AI Tutor", description: "Select a subject & topic for focused AI guidance and clarification.", linkHref: "/topic-ai-tutor", linkText: "Start Session", titleForColorBox: "Topic Tutor" },
     { icon: MessageCircleQuestion, title: "AI Q&A Assistant", description: "Get quick answers to your general knowledge and exam-related queries.", linkHref: "/ai-qa-chat", linkText: "Ask AI", titleForColorBox: "AI Q&A" },
@@ -77,7 +79,7 @@ export default function DashboardPage() {
           </div>
         </div>
          <p className="text-muted-foreground mb-6 text-sm">
-          Generate study plans, create custom quizzes, set daily goals, access past papers, get AI-powered solutions,
+          Generate study plans, create custom quizzes, generate flashcards, set daily goals, access past papers, get AI-powered solutions,
           clarify doubts with our chat support, and generate practice questions tailored to your needs.
         </p>
         <div className="flex flex-wrap gap-3 sm:gap-4">
@@ -86,6 +88,9 @@ export default function DashboardPage() {
           </Button>
            <Button asChild variant="secondary" size="lg" className="shadow-md hover:shadow-lg transition-shadow">
             <Link href="/ai-quiz-generator">Generate Quiz</Link>
+          </Button>
+           <Button asChild variant="outline" size="lg" className="shadow-md hover:shadow-lg transition-shadow">
+            <Link href="/flashcards">Make Flashcards</Link>
           </Button>
         </div>
       </section>

@@ -1,6 +1,6 @@
 
 import type { LucideIcon } from 'lucide-react';
-import { LayoutDashboard, NotebookText, Cpu, MessagesSquare, ListChecks, MessageCircleQuestion, Newspaper, GraduationCap, Settings, CalendarCheck } from 'lucide-react';
+import { LayoutDashboard, NotebookText, Cpu, MessagesSquare, ListChecks, MessageCircleQuestion, Newspaper, GraduationCap, Settings, CalendarCheck, Layers, Copy } from 'lucide-react';
 
 export type NavItem = {
   title: string;
@@ -24,6 +24,11 @@ export const navItems: NavItem[] = [
     title: 'AI Quiz Generator',
     href: '/ai-quiz-generator',
     icon: ListChecks,
+  },
+  {
+    title: 'AI Flashcards',
+    href: '/flashcards',
+    icon: Copy, // Using Copy icon for flashcards
   },
   {
     title: 'AI Question Solver',

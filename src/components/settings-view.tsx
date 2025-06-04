@@ -31,6 +31,7 @@ const STREAK_DATA_KEY = 'studyStreakData';
 const TOPIC_AI_TUTOR_SELECTION_KEY = "topic-ai-tutor-selection";
 const TOPIC_AI_TUTOR_MESSAGES_KEY_PREFIX = "topic-ai-tutor-messages";
 const STUDY_PLANNER_CACHE_KEY = "study-planner-cache";
+const FLASHCARD_GENERATOR_CACHE_KEY = "flashcard-generator-cache";
 
 
 const CACHE_KEYS_TO_CLEAR = [
@@ -44,6 +45,7 @@ const CACHE_KEYS_TO_CLEAR = [
   TOPIC_AI_TUTOR_SELECTION_KEY,
   USER_LANGUAGE_PREFERENCE_KEY,
   STUDY_PLANNER_CACHE_KEY,
+  FLASHCARD_GENERATOR_CACHE_KEY,
 ];
 
 
