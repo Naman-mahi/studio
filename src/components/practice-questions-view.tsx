@@ -112,7 +112,7 @@ export default function PracticeQuestionsView() {
               <div className="space-y-2">
                 <Label htmlFor="subject">Subject</Label>
                 <Select value={subject} onValueChange={handleSubjectChange} disabled={isLoading}>
-                  <SelectTrigger id="subject">
+                  <SelectTrigger id="subject" suppressHydrationWarning>
                     <SelectValue placeholder="Select Subject" />
                   </SelectTrigger>
                   <SelectContent>
@@ -125,7 +125,7 @@ export default function PracticeQuestionsView() {
               <div className="space-y-2">
                 <Label htmlFor="topic">Topic</Label>
                 <Select value={topic} onValueChange={setTopic} disabled={isLoading || !subject || availableTopics.length === 0}>
-                  <SelectTrigger id="topic">
+                  <SelectTrigger id="topic" suppressHydrationWarning>
                     <SelectValue placeholder="Select Topic" />
                   </SelectTrigger>
                   <SelectContent>
@@ -146,6 +146,7 @@ export default function PracticeQuestionsView() {
                   onChange={(e) => setNumQuestions(parseInt(e.target.value, 10))}
                   disabled={isLoading}
                   required
+                  suppressHydrationWarning
                 />
               </div>
             </div>
