@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { LayoutDashboard, NotebookText, Cpu, MessagesSquare, ListChecks } from 'lucide-react';
+import { LayoutDashboard, NotebookText, Cpu, MessagesSquare, ListChecks, MessageCircleQuestion, Newspaper } from 'lucide-react';
 
 export type NavItem = {
   title: string;
@@ -25,13 +25,23 @@ export const navItems: NavItem[] = [
     icon: Cpu,
   },
   {
-    title: 'Chat Support',
+    title: 'Practice Questions',
+    href: '/practice-questions',
+    icon: ListChecks,
+  },
+  {
+    title: 'AI Q&A Chat',
+    href: '/ai-qa-chat',
+    icon: MessageCircleQuestion,
+  },
+  {
+    title: 'Chat Support (Tutor)',
     href: '/chat-support',
     icon: MessagesSquare,
   },
   {
-    title: 'Practice Questions',
-    href: '/practice-questions',
-    icon: ListChecks,
+    title: 'Current Affairs',
+    href: '/current-affairs',
+    icon: Newspaper,
   },
 ];
