@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect, type FormEvent } from "react";
@@ -128,6 +129,7 @@ export default function ChatSupportView() {
                 placeholder="Type your question..."
                 disabled={isLoading}
                 className="flex-grow"
+                suppressHydrationWarning
               />
               <Button type="submit" disabled={isLoading || !input.trim()} size="icon">
                 <Send className="h-4 w-4" />
@@ -139,3 +141,4 @@ export default function ChatSupportView() {
     </div>
   );
 }
+
