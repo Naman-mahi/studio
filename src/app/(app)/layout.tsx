@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from 'react';
@@ -18,6 +19,7 @@ import { Logo } from '@/components/logo';
 import { navItems } from '@/config/site';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { ThemeToggleButton } from '@/components/theme-toggle-button'; // Added import
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -61,6 +63,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="flex-1">
               {/* Can add breadcrumbs or page title here */}
             </div>
+            <ThemeToggleButton /> {/* Added theme toggle button */}
           </header>
           <main className="flex-1 p-4 md:p-6">
             {children}

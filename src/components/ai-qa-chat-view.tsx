@@ -94,7 +94,7 @@ export default function AiQaChatView() {
   return (
     <div className="h-[calc(100vh-10rem)] flex flex-col">
       <h1 className="text-3xl font-headline font-bold mb-6">AI Q&A Chat</h1>
-      <Card className="flex-grow flex flex-col shadow-lg">
+      <Card className="flex-grow flex flex-col shadow-lg animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ease-out">
         <CardHeader>
           <CardTitle className="font-headline">Ask the AI Assistant</CardTitle>
           <CardDescription>Get direct answers to your questions about RRB NTPC topics or general knowledge. Chat history is saved locally.</CardDescription>

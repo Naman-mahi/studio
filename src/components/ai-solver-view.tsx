@@ -136,7 +136,7 @@ export default function AiSolverView() {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-headline font-bold">AI Question Solver</h1>
-      <Card className="shadow-lg">
+      <Card className="shadow-lg animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ease-out">
         <CardHeader>
           <CardTitle className="font-headline">Upload or Enter Question Paper</CardTitle>
           <CardDescription>
@@ -200,7 +200,7 @@ export default function AiSolverView() {
       </Card>
 
       {isLoading && (
-        <Card className="shadow-lg">
+        <Card className="shadow-lg animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ease-out">
           <CardContent className="pt-6 flex flex-col items-center justify-center">
             <LoadingIndicator size={48} />
             <p className="mt-4 text-muted-foreground">AI is solving the paper, please wait...</p>
@@ -209,7 +209,7 @@ export default function AiSolverView() {
       )}
 
       {result && (
-        <Card className="shadow-lg">
+        <Card className="shadow-lg animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ease-out">
           <CardHeader>
             <CardTitle className="font-headline">Solutions and Answer Key</CardTitle>
           </CardHeader>

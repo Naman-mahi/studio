@@ -18,7 +18,7 @@ export default function PastPapersView() {
         <Button variant="outline" onClick={() => setSelectedPaper(null)} className="mb-4 shadow-sm hover:shadow-md transition-shadow">
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Papers
         </Button>
-        <Card className="shadow-lg">
+        <Card className="shadow-lg animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ease-out">
           <CardHeader>
             <CardTitle className="font-headline text-2xl">{selectedPaper.title}</CardTitle>
             <CardDescription>{selectedPaper.description}</CardDescription>
@@ -57,7 +57,7 @@ export default function PastPapersView() {
       <h1 className="text-3xl font-headline font-bold">Past Question Papers</h1>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {pastPapersData.map((paper) => (
-          <Card key={paper.id} className="flex flex-col shadow-lg hover:shadow-xl transition-shadow">
+          <Card key={paper.id} className="flex flex-col shadow-lg hover:shadow-xl transition-shadow animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ease-out">
             <CardHeader>
               <CardTitle className="font-headline text-xl">{paper.title}</CardTitle>
               <CardDescription>{paper.description}</CardDescription>

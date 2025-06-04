@@ -148,7 +148,7 @@ export default function PracticeQuestionsView() {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-headline font-bold">Practice Question Generator</h1>
-      <Card className="shadow-lg">
+      <Card className="shadow-lg animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ease-out">
         <CardHeader>
           <CardTitle className="font-headline">Generate Custom Quiz</CardTitle>
           <CardDescription>
@@ -208,7 +208,7 @@ export default function PracticeQuestionsView() {
       </Card>
 
       {isLoading && (
-         <Card className="shadow-lg">
+         <Card className="shadow-lg animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ease-out">
           <CardContent className="pt-6 flex flex-col items-center justify-center">
             <LoadingIndicator size={48} />
             <p className="mt-4 text-muted-foreground">AI is generating questions, please wait...</p>
@@ -217,7 +217,7 @@ export default function PracticeQuestionsView() {
       )}
 
       {generatedQuestions.length > 0 && (
-        <Card className="shadow-lg">
+        <Card className="shadow-lg animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ease-out">
           <CardHeader>
             <CardTitle className="font-headline">Generated Questions for {topic} ({subject})</CardTitle>
           </CardHeader>

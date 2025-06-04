@@ -67,9 +67,10 @@ export default function ChatSupportView() {
 
     try {
       const previousMessagesForAI = messages.map(m => ({ role: m.role, content: m.content }));
+      // For general chat support, we don't pass subject or topic.
       const aiResponse = await questionClarificationChat({
         question: userMessage.content,
-        previousMessages: previousMessagesForAI.slice(-10), // Send last 10 messages
+        previousMessages: previousMessagesForAI.slice(-10), 
       });
       
       const assistantMessage: Message = {
@@ -93,11 +94,11 @@ export default function ChatSupportView() {
 
   return (
     <div className="h-[calc(100vh-10rem)] flex flex-col">
-      <h1 className="text-3xl font-headline font-bold mb-6">AI Chat Support</h1>
-      <Card className="flex-grow flex flex-col shadow-lg">
+      <h1 className="text-3xl font-headline font-bold mb-6">General AI Chat Support</h1>
+      <Card className="flex-grow flex flex-col shadow-lg animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ease-out">
         <CardHeader>
-          <CardTitle className="font-headline">Chat with AI Tutor</CardTitle>
-          <CardDescription>Ask questions about RRB NTPC topics, clarify doubts, or discuss problems. Chat history is saved locally.</CardDescription>
+          <CardTitle className="font-headline">Chat with General AI Tutor</CardTitle>
+          <CardDescription>Ask general questions about RRB NTPC topics, clarify doubts, or discuss problems. Chat history is saved locally.</CardDescription>
         </CardHeader>
         <CardContent className="flex-grow flex flex-col p-0">
           <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>

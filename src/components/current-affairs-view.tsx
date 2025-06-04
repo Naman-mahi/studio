@@ -86,7 +86,7 @@ export default function CurrentAffairsView() {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-headline font-bold">Current Affairs Digest</h1>
-      <Card className="shadow-lg">
+      <Card className="shadow-lg animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ease-out">
         <CardHeader>
           <CardTitle className="font-headline">Get Recent Updates</CardTitle>
           <CardDescription>
@@ -122,7 +122,7 @@ export default function CurrentAffairsView() {
       </Card>
 
       {isLoading && (
-         <Card className="shadow-lg">
+         <Card className="shadow-lg animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ease-out">
           <CardContent className="pt-6 flex flex-col items-center justify-center">
             <LoadingIndicator size={48} />
             <p className="mt-4 text-muted-foreground">AI is fetching current affairs, please wait...</p>
@@ -131,7 +131,7 @@ export default function CurrentAffairsView() {
       )}
 
       {summary && (
-        <Card className="shadow-lg">
+        <Card className="shadow-lg animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ease-out">
           <CardHeader>
             <CardTitle className="font-headline">Current Affairs Summary: {selectedCategory}</CardTitle>
           </CardHeader>
