@@ -24,7 +24,7 @@ import { ThemeToggleButton } from '@/components/theme-toggle-button';
 import { GlobalSearchDialog } from '@/components/global-search-dialog';
 import { Search } from 'lucide-react';
 import { useTheme } from '@/hooks/use-theme';
-import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
+// Removed Skeleton import as it's no longer used here for placeholders
 
 function AppSidebarHeader() {
   const { state } = useSidebar();
@@ -100,7 +100,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <header className="sticky top-0 z-10 flex h-14 items-center border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
             {/* Left group: Contains the sidebar trigger */}
             <div className="flex items-center gap-2">
-              {mounted ? <SidebarTrigger suppressHydrationWarning /> : <Skeleton className="h-7 w-7" />}
+              {mounted ? <SidebarTrigger suppressHydrationWarning /> : <div className="h-7 w-7" /> /* Render a div of same size or null */}
             </div>
             
             {/* Spacer: This div will grow to take up all available space in the middle */}
@@ -111,7 +111,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <Button variant="ghost" size="icon" onClick={() => setIsSearchOpen(true)} aria-label="Open search">
                 <Search className="h-5 w-5" />
               </Button>
-              {mounted ? <ThemeToggleButton /> : <Skeleton className="h-10 w-10" />}
+              {mounted ? <ThemeToggleButton /> : <div className="h-10 w-10" /> /* Render a div of same size or null */}
             </div>
           </header>
           <main className="flex-1 p-4 md:p-6">
