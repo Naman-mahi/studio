@@ -21,6 +21,7 @@ export function addUserPoints(pointsToAdd: number): number {
   localStorage.setItem(POINTS_STORAGE_KEY, String(currentPoints));
   // Dispatch a storage event so other components can react
   window.dispatchEvent(new StorageEvent('storage', { key: POINTS_STORAGE_KEY, newValue: String(currentPoints) }));
+  // Removed call to checkAndAwardBadges() to break circular dependency
   return currentPoints;
 }
 

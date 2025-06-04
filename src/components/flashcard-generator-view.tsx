@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, type FormEvent, useEffect, useMemo, useCallback } from "react";
@@ -11,6 +12,9 @@ import toast from 'react-hot-toast';
 import { LoadingIndicator } from "@/components/loading-indicator";
 import { getStoredLanguage } from "./settings-view";
 import { Layers, Sparkles, RotateCcw, ArrowLeft, ArrowRight, Shuffle, FileText, Copy } from "lucide-react";
+import { updateUserStats } from "@/lib/user-stats"; // Corrected import
+import { checkAndAwardBadges } from "@/lib/badges";
+
 
 interface Flashcard {
   term: string;
@@ -97,7 +101,7 @@ export default function FlashcardGeneratorView() {
                 setFlashcardUIState("viewing");
             }
         } else {
-            resetToConfiguring(true); // Language mismatch
+            resetToConfiguring(true); 
         }
       }
     } catch (error) {
@@ -170,7 +174,7 @@ export default function FlashcardGeneratorView() {
 
     setIsLoading(true);
     setFlashcardUIState("generating");
-    resetToConfiguring(true); // Clear old cards but keep config
+    resetToConfiguring(true); 
 
     try {
       const lang = getStoredLanguage();
@@ -184,6 +188,8 @@ export default function FlashcardGeneratorView() {
         setCurrentFlashcardIndex(0);
         setIsFlipped(false);
         setFlashcardUIState("viewing");
+        updateUserStats({ flashcardSetGenerated: true });
+        checkAndAwardBadges();
       } else {
         toast("AI couldn't generate flashcards. Try different inputs.", { duration: 4000 });
         resetToConfiguring(true);
@@ -199,7 +205,7 @@ export default function FlashcardGeneratorView() {
   const handleFlipCard = () => setIsFlipped(!isFlipped);
 
   const navigateFlashcard = (direction: 'next' | 'prev') => {
-    setIsFlipped(false); // Always show term first on new card
+    setIsFlipped(false); 
     if (direction === 'next') {
         setCurrentFlashcardIndex(prev => (prev + 1) % generatedFlashcards.length);
     } else if (direction === 'prev') {
@@ -293,11 +299,9 @@ export default function FlashcardGeneratorView() {
             onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') handleFlipCard();}}
             aria-label={`Flashcard. Front: ${currentCard.term}. Click or press space/enter to flip.`}
           >
-            {/* Front of card */}
             <div className="absolute inset-0 w-full h-full flex items-center justify-center p-6 backface-hidden rounded-lg">
               <p className="text-xl md:text-2xl font-semibold text-center text-card-foreground whitespace-pre-wrap">{currentCard.term}</p>
             </div>
-            {/* Back of card */}
             <div className="absolute inset-0 w-full h-full flex items-center justify-center p-6 bg-muted text-muted-foreground backface-hidden rotate-y-180 rounded-lg">
               <p className="text-md md:text-lg text-center whitespace-pre-wrap">{currentCard.definition}</p>
             </div>

@@ -9,10 +9,11 @@ import { Label } from '@/components/ui/label';
 import toast from 'react-hot-toast';
 import { Flame, Target, CheckCircle2, Award } from 'lucide-react';
 import { addUserPoints } from '@/lib/points'; // Import point utility
+import { checkAndAwardBadges } from '@/lib/badges'; // Import badge utility
 
 const STREAK_DATA_KEY = 'studyStreakData';
 
-interface StudyStreakData {
+export interface StudyStreakData {
   currentStreak: number;
   lastCompletionDate: string | null; // YYYY-MM-DD
   dailyGoal: string;
@@ -108,6 +109,7 @@ export default function StudyStreakTracker() {
     
     addUserPoints(50); // Award 50 points for achieving goal
     pointsAwarded = true;
+    checkAndAwardBadges(); // Check for badges after points are added and streak might change
 
     setStreakData(prev => ({
       ...prev,

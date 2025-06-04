@@ -15,7 +15,8 @@ import toast from 'react-hot-toast';
 import { LoadingIndicator } from "@/components/loading-indicator";
 import { getStoredLanguage } from "./settings-view";
 import { addUserPoints } from "@/lib/points";
-import { checkAndAwardBadges, updateUserStats } from "@/lib/badges";
+import { updateUserStats } from "@/lib/user-stats"; // Corrected import
+import { checkAndAwardBadges } from "@/lib/badges";
 import { ArrowLeft, ArrowRight, CheckCircle, HelpCircle, ListChecks, RotateCcw, XCircle, FileText, Sparkles, BarChart3, Award } from "lucide-react";
 
 interface GeneratedQuestion {
@@ -50,7 +51,6 @@ interface AiQuizGeneratorCache {
   languageAtGeneration: string | null;
 }
 
-// For Advanced Performance Analytics - Iteration 1
 interface QuizAttempt {
   id: string;
   timestamp: string;
@@ -63,7 +63,7 @@ interface QuizAttempt {
 }
 
 const AI_QUIZ_GENERATOR_CACHE_KEY = "ai-quiz-generator-cache";
-const QUIZ_HISTORY_KEY = "ai-quiz-history"; // For Advanced Performance Analytics
+const QUIZ_HISTORY_KEY = "ai-quiz-history"; 
 
 const rrbNTPCSubjectsAndTopics: Record<string, string[]> = {
   "Mathematics": [
@@ -301,13 +301,12 @@ export default function AiQuizGeneratorView() {
         questions: resultsQuestions, 
         userAnswers: userSelectedAnswers, 
         score,
-        quizConfig: { ...quizConfig }, // Store a snapshot of the config for these results
+        quizConfig: { ...quizConfig }, 
         pointsEarned
     };
     setLastQuizResults(currentResults);
     setQuizState("results");
 
-    // Store quiz attempt in history
     if (languageAtGeneration) {
         const newAttempt: QuizAttempt = {
             id: Date.now().toString(),
@@ -324,7 +323,6 @@ export default function AiQuizGeneratorView() {
             const historyString = localStorage.getItem(QUIZ_HISTORY_KEY);
             const history: QuizAttempt[] = historyString ? JSON.parse(historyString) : [];
             history.push(newAttempt);
-            // Optional: Limit history size, e.g., history.slice(-50)
             localStorage.setItem(QUIZ_HISTORY_KEY, JSON.stringify(history));
         } catch (error) {
             console.error("Failed to save quiz history:", error);
@@ -597,4 +595,3 @@ export default function AiQuizGeneratorView() {
     </div>
   );
 }
-
