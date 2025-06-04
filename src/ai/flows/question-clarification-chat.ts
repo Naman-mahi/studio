@@ -44,6 +44,8 @@ const prompt = ai.definePrompt({
 
   {{#if subject}}
   The student is focusing on Subject: {{{subject}}}{{#if topic}}}, Topic: {{{topic}}}{{/if}}. Tailor your guidance accordingly.
+  {{else}}
+  You are acting as a general AI tutor.
   {{/if}}
 
   Question: {{{question}}}
@@ -76,7 +78,11 @@ const questionClarificationChatFlow = ai.defineFlow(
     outputSchema: QuestionClarificationChatOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    const result = await prompt(input);
+    if (!result.output || typeof result.output.answer !== 'string') {
+      console.error('AI tutor (questionClarificationChatFlow) prompt did not return a valid structured output.', { input, output: result.output });
+      return { answer: "I'm currently unable to process this request for the selected topic/question. Please try rephrasing or asking something different." };
+    }
+    return result.output;
   }
 );

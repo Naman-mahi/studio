@@ -1,7 +1,7 @@
 
 import type { Metadata } from 'next';
 import './globals.css';
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster as HotToaster } from 'react-hot-toast'; // Renamed to avoid conflict if any
 
 export const metadata: Metadata = {
   title: 'NTPC Prep Ace',
@@ -23,7 +23,7 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased bg-background text-foreground"> {/* Added bg-background and text-foreground here */}
         {children}
-        <Toaster />
+        <HotToaster position="top-right" />
       </body>
     </html>
   );

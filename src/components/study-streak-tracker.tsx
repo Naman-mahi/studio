@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
+import toast from 'react-hot-toast';
 import { Flame, Target, CheckCircle2 } from 'lucide-react';
 
 const STREAK_DATA_KEY = 'studyStreakData';
@@ -33,10 +33,9 @@ export default function StudyStreakTracker() {
   const [streakData, setStreakData] = useState<StudyStreakData>(defaultStreakData);
   const [currentGoalInput, setCurrentGoalInput] = useState('');
   const [isClient, setIsClient] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
-    setIsClient(true); // Ensure localStorage is only accessed on the client
+    setIsClient(true); 
   }, []);
 
   useEffect(() => {
@@ -47,20 +46,10 @@ export default function StudyStreakTracker() {
       let loadedData = cachedData ? JSON.parse(cachedData) : defaultStreakData;
 
       const today = getTodayDateString();
-      // Reset goalAchievedToday if it's a new day
       if (loadedData.lastCompletionDate !== today && loadedData.goalAchievedToday) {
         loadedData = { ...loadedData, goalAchievedToday: false };
       }
-      // If goal was set but not achieved on a previous day, and it's a new day, clear the old goal text
-      // but preserve streak if lastCompletionDate implies it's still active
-      if (loadedData.dailyGoal && loadedData.lastCompletionDate !== today && !loadedData.goalAchievedToday) {
-        // Keep dailyGoal if it was just set today and not yet achieved
-        // This scenario is covered by simply loading the data.
-        // If it's a *new* day and the previous day's goal wasn't achieved, it's fine for it to persist
-        // for the user to re-evaluate or achieve.
-      }
-
-
+      
       setStreakData(loadedData);
       setCurrentGoalInput(loadedData.dailyGoal || '');
 
@@ -82,16 +71,16 @@ export default function StudyStreakTracker() {
   const handleSetGoal = (e?: FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
     if (!currentGoalInput.trim()) {
-        toast({ title: "Goal Empty", description: "Please enter a goal.", variant: "destructive"});
+        toast.error("Please enter a goal.");
         return;
     }
-    setStreakData(prev => ({ ...prev, dailyGoal: currentGoalInput.trim(), goalAchievedToday: false })); // Reset achieved status if goal changes
-    toast({ title: "Goal Set!", description: `Your daily goal is: ${currentGoalInput.trim()}`});
+    setStreakData(prev => ({ ...prev, dailyGoal: currentGoalInput.trim(), goalAchievedToday: false })); 
+    toast.success(`Goal Set: ${currentGoalInput.trim()}`);
   };
 
   const handleAchieveGoal = () => {
     if (!streakData.dailyGoal) {
-      toast({ title: "No Goal Set", description: "Please set a daily goal first.", variant: "destructive" });
+      toast.error("Please set a daily goal first.");
       return;
     }
 
@@ -99,7 +88,7 @@ export default function StudyStreakTracker() {
     let newStreak = streakData.currentStreak;
 
     if (streakData.lastCompletionDate === today && streakData.goalAchievedToday) {
-        toast({ title: "Already Achieved", description: "You've already achieved your goal for today!", variant: "default" });
+        toast("You've already achieved your goal for today!");
         return;
     }
 
@@ -110,15 +99,9 @@ export default function StudyStreakTracker() {
     if (streakData.lastCompletionDate === yesterdayString) {
       newStreak++;
     } else if (streakData.lastCompletionDate !== today) {
-      // If last completion wasn't yesterday or today, streak resets to 1
       newStreak = 1;
     } else {
-       // If lastCompletionDate is today, but goalAchievedToday was false, it's the first achievement today
-       // If streak was 0, it becomes 1. If >0 it implies it was from yesterday, so it just continues.
-       // This case means they are marking it for the first time today
        if (newStreak === 0) newStreak = 1;
-       // if newStreak > 0 and lastCompletionDate is also today, it means they marked it, then unmarked it (not possible with current UI), or changed goal
-       // and are now re-marking it. Streak should continue.
     }
     
     setStreakData(prev => ({
@@ -127,7 +110,10 @@ export default function StudyStreakTracker() {
       lastCompletionDate: today,
       goalAchievedToday: true,
     }));
-    toast({ title: "Goal Achieved!", description: `Great job! Your streak is now ${newStreak}.`, className: "bg-green-500 text-white" });
+    toast.success(`Goal Achieved! Your streak is now ${newStreak}.`, {
+        iconTheme: { primary: '#10B981', secondary: '#FFFFFF'}, // Green checkmark
+        style: { background: '#D1FAE5', color: '#065F46' } // Light green background, dark green text
+    });
   };
   
   if (!isClient) {

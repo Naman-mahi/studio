@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { questionClarificationChat } from "@/app/(app)/chat-support/actions";
-import { useToast } from "@/hooks/use-toast";
+import toast from 'react-hot-toast';
 import { Send, User, Bot } from "lucide-react";
 import { LoadingIndicator } from "@/components/loading-indicator";
 
@@ -24,7 +24,6 @@ export default function ChatSupportView() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -44,13 +43,13 @@ export default function ChatSupportView() {
         localStorage.setItem(CHAT_SUPPORT_MESSAGES_KEY, JSON.stringify(messages));
       } catch (error) {
         console.error("Failed to save messages to localStorage", error);
-        toast({ title: "Cache Error", description: "Could not save chat history locally.", variant: "destructive" });
+        toast.error("Could not save chat history locally.");
       }
     }
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
     }
-  }, [messages, toast]);
+  }, [messages]);
   
   const handleSubmit = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
@@ -80,7 +79,7 @@ export default function ChatSupportView() {
       };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (e: any) {
-      toast({ title: "Error", description: e.message || "Failed to get response from AI.", variant: "destructive" });
+      toast.error(e.message || "Failed to get response from AI.");
        const assistantErrorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",

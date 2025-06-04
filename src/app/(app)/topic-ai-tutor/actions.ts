@@ -9,12 +9,15 @@ export async function askTopicTutor(input: QuestionClarificationChatInput): Prom
     if (!input.question || input.question.trim() === "") {
       throw new Error("Question cannot be empty.");
     }
-    if (!input.subject || !input.topic) {
-      throw new Error("Subject and Topic must be selected for Topic AI Tutor.");
+    if (!input.subject || input.subject.trim() === "" || !input.topic || input.topic.trim() === "") {
+      throw new Error("Subject and Topic must be selected and cannot be empty for Topic AI Tutor.");
     }
     return await topicTutorChatFlow(input);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in askTopicTutor action:", error);
-    throw new Error("Failed to get chat response from Topic AI Tutor due to an internal error.");
+    if (error instanceof Error) {
+        throw new Error(error.message); 
+    }
+    throw new Error("Failed to get chat response from Topic AI Tutor due to an unexpected error.");
   }
 }

@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { solveQuestionPaper } from "@/app/(app)/ai-solver/actions";
 import type { SolveQuestionPaperOutput } from "@/ai/flows/ai-question-solver";
-import { useToast } from "@/hooks/use-toast";
+import toast from 'react-hot-toast';
 import { LoadingIndicator } from "@/components/loading-indicator";
 
 const AI_SOLVER_CACHED_INPUT_KEY = "ai-solver-cached-input";
@@ -21,7 +21,6 @@ export default function AiSolverView() {
   const [result, setResult] = useState<SolveQuestionPaperOutput | null>(null);
   const [questionText, setQuestionText] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const { toast } = useToast();
 
   useEffect(() => {
     try {
@@ -73,51 +72,45 @@ export default function AiSolverView() {
         reader.onload = async () => {
           try {
             const base64Image = reader.result as string;
-            // For image uploads, we won't use the text area content for caching key directly
-            // We'll cache the result but not prefill `questionText` from image
             const output = await solveQuestionPaper({ questionPaper: base64Image });
             setResult(output);
-            // Cache result with a generic key for file uploads for now, or a hash if complex
             localStorage.setItem(AI_SOLVER_CACHED_RESULT_KEY, JSON.stringify(output));
-            localStorage.removeItem(AI_SOLVER_CACHED_INPUT_KEY); // Clear text input cache
+            localStorage.removeItem(AI_SOLVER_CACHED_INPUT_KEY); 
           } catch (e: any) {
-            toast({ title: "Error", description: e.message || "Failed to process image.", variant: "destructive" });
+            toast.error(e.message || "Failed to process image.");
           } finally {
             setIsLoading(false);
           }
         };
         reader.onerror = () => {
-          toast({ title: "Error", description: "Failed to read file.", variant: "destructive" });
+          toast.error("Failed to read file.");
           setIsLoading(false);
         };
         return; 
       } else if (file.type === "text/plain") {
          paperContent = await file.text();
-         setQuestionText(paperContent); // Update questionText state if text file is uploaded
+         setQuestionText(paperContent); 
       } else {
-        toast({ title: "Error", description: "Unsupported file type. Please upload an image or a plain text file.", variant: "destructive" });
+        toast.error("Unsupported file type. Please upload an image or a plain text file.");
         setIsLoading(false);
         return;
       }
     }
     
     if (!paperContent && !file) {
-       toast({ title: "Error", description: "Please provide question paper content or upload a file.", variant: "destructive" });
+       toast.error("Please provide question paper content or upload a file.");
        setIsLoading(false);
        return;
     }
 
-    // If it was a text file, paperContent is updated, and questionText is also updated.
-    // Now proceed with this paperContent for AI processing.
     if (!isFileProcessing || (file && file.type === "text/plain")) {
         try {
           const output = await solveQuestionPaper({ questionPaper: paperContent });
           setResult(output);
-          // Caching for text input or text file content
           localStorage.setItem(AI_SOLVER_CACHED_INPUT_KEY, paperContent);
           localStorage.setItem(AI_SOLVER_CACHED_RESULT_KEY, JSON.stringify(output));
         } catch (e: any) {
-          toast({ title: "Error", description: e.message || "An unexpected error occurred.", variant: "destructive" });
+          toast.error(e.message || "An unexpected error occurred.");
         } finally {
           setIsLoading(false);
         }

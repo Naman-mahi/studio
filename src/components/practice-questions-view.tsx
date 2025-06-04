@@ -10,7 +10,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { generatePracticeQuestions } from "@/app/(app)/practice-questions/actions";
 import type { PracticeQuestionGeneratorOutput } from "@/ai/flows/practice-question-generator";
-import { useToast } from "@/hooks/use-toast";
+import toast from 'react-hot-toast';
 import { LoadingIndicator } from "@/components/loading-indicator";
 
 interface GeneratedQuestion {
@@ -65,7 +65,6 @@ export default function PracticeQuestionsView() {
   const [subject, setSubject] = useState("");
   const [topic, setTopic] = useState("");
   const [numQuestions, setNumQuestions] = useState(5);
-  const { toast } = useToast();
 
   useEffect(() => {
     try {
@@ -73,11 +72,10 @@ export default function PracticeQuestionsView() {
       if (cachedData) {
         const parsedCache: PracticeQuestionsCache = JSON.parse(cachedData);
         setSubject(parsedCache.subject);
-        // Ensure topic is valid for the loaded subject
         if (rrbNTPCSubjectsAndTopics[parsedCache.subject]?.includes(parsedCache.topic)) {
           setTopic(parsedCache.topic);
         } else {
-          setTopic(""); // Reset topic if not valid
+          setTopic(""); 
         }
         setNumQuestions(parsedCache.numQuestions);
         setGeneratedQuestions(parsedCache.generatedQuestions);
@@ -99,32 +97,31 @@ export default function PracticeQuestionsView() {
   const handleSubjectChange = (selectedSubject: string) => {
     setSubject(selectedSubject);
     setTopic(""); 
-    setGeneratedQuestions([]); // Clear questions when subject changes
+    setGeneratedQuestions([]); 
   };
   
   const handleTopicChange = (selectedTopic: string) => {
     setTopic(selectedTopic);
-    setGeneratedQuestions([]); // Clear questions when topic changes
+    setGeneratedQuestions([]); 
   };
 
   const handleNumQuestionsChange = (value: number) => {
     setNumQuestions(value);
-    setGeneratedQuestions([]); // Clear questions when number of questions changes
+    setGeneratedQuestions([]); 
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!subject) {
-      toast({ title: "Missing Information", description: "Please select a subject.", variant: "destructive" });
+      toast.error("Please select a subject.");
       return;
     }
     if (!topic) {
-      toast({ title: "Missing Information", description: "Please select a topic.", variant: "destructive" });
+      toast.error("Please select a topic.");
       return;
     }
 
     setIsLoading(true);
-    // setGeneratedQuestions([]); // Keep old questions while loading new ones, or clear: user preference
 
     try {
       const output: PracticeQuestionGeneratorOutput = await generatePracticeQuestions({
@@ -134,10 +131,10 @@ export default function PracticeQuestionsView() {
       });
       setGeneratedQuestions(output.questions);
       if (output.questions.length === 0) {
-        toast({ title: "No Questions Generated", description: "The AI couldn't generate questions for the given inputs. Try different topics or subjects.", variant: "default" });
+        toast("The AI couldn't generate questions for the given inputs. Try different topics or subjects.");
       }
     } catch (e: any) {
-      toast({ title: "Error", description: e.message || "Failed to generate questions.", variant: "destructive" });
+      toast.error(e.message || "Failed to generate questions.");
     } finally {
       setIsLoading(false);
     }

@@ -4,7 +4,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Lightbulb, CheckCircle, Zap, Trash2, Newspaper, NotebookText, ListChecks, MessageCircleQuestion, MessagesSquare, Cpu } from "lucide-react";
+import { Cpu, ListChecks, MessagesSquare, NotebookText, MessageCircleQuestion, Newspaper, Trash2, GraduationCap } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,7 +16,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
+import toast from 'react-hot-toast';
 import { useState } from "react";
 import StudyStreakTracker from "@/components/study-streak-tracker"; 
 
@@ -28,6 +28,8 @@ const CACHE_KEYS = [
   "practice-questions-cache",
   "current-affairs-cache",
   "studyStreakData",
+  "topic-ai-tutor-selection", // Added for topic tutor
+  // Add keys for topic-ai-tutor-messages dynamically or manage them via a prefix
 ];
 
 const featureCardColors = [
@@ -37,6 +39,7 @@ const featureCardColors = [
   "bg-rose-600 text-white",
   "bg-amber-500 text-black",
   "bg-teal-600 text-white",
+  "bg-indigo-600 text-white",
 ];
 
 interface FeatureCardProps {
@@ -72,34 +75,48 @@ function FeatureCard({ icon: Icon, title, description, linkHref, linkText, bgCol
 }
 
 export default function DashboardPage() {
-  const { toast } = useToast();
   const [isAlertOpen, setIsAlertOpen] = useState(false);
 
   const handleClearCache = () => {
     try {
-      CACHE_KEYS.forEach(key => localStorage.removeItem(key));
-      toast({
-        title: "Cache Cleared",
-        description: "All locally stored application data has been cleared.",
+      let clearedCount = 0;
+      CACHE_KEYS.forEach(key => {
+        if (localStorage.getItem(key) !== null) {
+            localStorage.removeItem(key);
+            clearedCount++;
+        }
       });
+
+      // Clear topic tutor messages which are stored with dynamic keys
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith("topic-ai-tutor-messages-")) {
+          localStorage.removeItem(key);
+          clearedCount++;
+        }
+      });
+      
+      if (clearedCount > 0) {
+        toast.success("All locally stored application data has been cleared.");
+      } else {
+        toast("No cached data found to clear.");
+      }
     } catch (error) {
       console.error("Failed to clear cache:", error);
-      toast({
-        title: "Error Clearing Cache",
-        description: "Could not clear all cached data. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Could not clear all cached data. Please try again.");
     }
     setIsAlertOpen(false);
-     window.location.reload(); 
+    // Consider a softer refresh or state update if full reload is too disruptive
+    // For now, reload ensures all components re-fetch or re-initialize state
+    window.location.reload(); 
   };
 
   const features = [
     { icon: Cpu, title: "AI Question Solver", description: "Upload question papers and get AI-powered solutions and answer keys.", linkHref: "/ai-solver", linkText: "Try AI Solver", titleForColorBox: "AI Solver" },
-    { icon: ListChecks, title: "Targeted Practice", description: "Generate practice questions based on specific RRB NTPC topics and subjects.", linkHref: "/practice-questions", linkText: "Create Quiz", titleForColorBox: "Practice Quiz" },
-    { icon: MessagesSquare, title: "Instant Chat Support", description: "Engage with our AI tutor for question clarification and discussion.", linkHref: "/chat-support", linkText: "Start Chatting", titleForColorBox: "AI Tutor Chat" },
-    { icon: NotebookText, title: "Past Papers", description: "Review previous RRB NTPC exam papers to understand patterns.", linkHref: "/past-papers", linkText: "Explore Papers", titleForColorBox: "Past Papers" },
+    { icon: ListChecks, title: "Practice Questions", description: "Generate practice questions based on specific RRB NTPC topics and subjects.", linkHref: "/practice-questions", linkText: "Create Quiz", titleForColorBox: "Practice Quiz" },
+    { icon: GraduationCap, title: "Topic AI Tutor", description: "Select a subject & topic for focused AI guidance and clarification.", linkHref: "/topic-ai-tutor", linkText: "Start Session", titleForColorBox: "Topic Tutor" },
     { icon: MessageCircleQuestion, title: "AI Q&A Assistant", description: "Get quick answers to your general knowledge and exam-related queries.", linkHref: "/ai-qa-chat", linkText: "Ask AI", titleForColorBox: "AI Q&A" },
+    { icon: MessagesSquare, title: "Chat Support (General)", description: "Engage with our AI for general question clarification and discussion.", linkHref: "/chat-support", linkText: "Start Chatting", titleForColorBox: "General AI Chat" },
+    { icon: NotebookText, title: "Past Papers", description: "Review previous RRB NTPC exam papers to understand patterns.", linkHref: "/past-papers", linkText: "Explore Papers", titleForColorBox: "Past Papers" },
     { icon: Newspaper, title: "Current Affairs", description: "Stay updated with the latest current events relevant for your exams.", linkHref: "/current-affairs", linkText: "Get Updates", titleForColorBox: "Current Affairs" },
   ];
 
@@ -125,7 +142,7 @@ export default function DashboardPage() {
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
                   This action will permanently delete all cached data from this application in your browser,
-                  including chat histories, saved inputs, generated content, and study streak progress. This cannot be undone.
+                  including chat histories, saved inputs, generated content, study streak progress, and topic selections. This cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -173,4 +190,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-

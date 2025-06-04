@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { generateCurrentAffairs } from "@/app/(app)/current-affairs/actions";
 import type { CurrentAffairsGeneratorInput, CurrentAffairsGeneratorOutput } from '@/ai/flows/current-affairs-generator';
-import { useToast } from "@/hooks/use-toast";
+import toast from 'react-hot-toast';
 import { LoadingIndicator } from "@/components/loading-indicator";
 
 const currentAffairsCategories = [
@@ -34,7 +34,6 @@ export default function CurrentAffairsView() {
   const [isLoading, setIsLoading] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<CurrentAffairsGeneratorInput['category']>('General');
-  const { toast } = useToast();
 
   useEffect(() => {
     try {
@@ -60,7 +59,7 @@ export default function CurrentAffairsView() {
 
   const handleCategoryChange = (value: CurrentAffairsGeneratorInput['category']) => {
     setSelectedCategory(value);
-    setSummary(null); // Clear summary when category changes, will fetch new one on submit
+    setSummary(null); 
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -74,10 +73,10 @@ export default function CurrentAffairsView() {
       });
       setSummary(output.summary);
       if (!output.summary) {
-        toast({ title: "No Summary Generated", description: "The AI couldn't generate current affairs for the selected category. Try a different one or try again later.", variant: "default" });
+        toast("The AI couldn't generate current affairs for the selected category. Try a different one or try again later.");
       }
     } catch (e: any) {
-      toast({ title: "Error", description: e.message || "Failed to generate current affairs.", variant: "destructive" });
+      toast.error(e.message || "Failed to generate current affairs.");
     } finally {
       setIsLoading(false);
     }

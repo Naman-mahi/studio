@@ -10,7 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { askTopicTutor } from "@/app/(app)/topic-ai-tutor/actions";
-import { useToast } from "@/hooks/use-toast";
+import toast from 'react-hot-toast';
 import { Send, User, Bot, GraduationCap } from "lucide-react";
 import { LoadingIndicator } from "@/components/loading-indicator";
 import type { QuestionClarificationChatInput } from '@/ai/flows/question-clarification-chat';
@@ -67,12 +67,11 @@ export default function TopicAiTutorView() {
   const [topic, setTopic] = useState("");
   const [isTopicSelected, setIsTopicSelected] = useState(false);
 
-  const { toast } = useToast();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const getCacheKey = (currentSubject: string, currentTopic: string) => {
     if (!currentSubject || !currentTopic) return null;
-    return `${TOPIC_AI_TUTOR_MESSAGES_KEY_PREFIX}-${currentSubject}-${currentTopic}`;
+    return `${TOPIC_AI_TUTOR_MESSAGES_KEY_PREFIX}-${currentSubject.replace(/\s+/g, '_')}-${currentTopic.replace(/\s+/g, '_')}`;
   };
 
   useEffect(() => {
@@ -80,8 +79,8 @@ export default function TopicAiTutorView() {
       const cachedSelection = localStorage.getItem(TOPIC_AI_TUTOR_SELECTION_KEY);
       if (cachedSelection) {
         const { subject: cachedSubject, topic: cachedTopic }: TutorSelection = JSON.parse(cachedSelection);
-        setSubject(cachedSubject);
-        if (rrbNTPCSubjectsAndTopics[cachedSubject]?.includes(cachedTopic)) {
+        if (cachedSubject && rrbNTPCSubjectsAndTopics[cachedSubject]?.includes(cachedTopic)) {
+          setSubject(cachedSubject);
           setTopic(cachedTopic);
           setIsTopicSelected(true);
           const messageCacheKey = getCacheKey(cachedSubject, cachedTopic);
@@ -90,7 +89,7 @@ export default function TopicAiTutorView() {
             if (cachedMessages) setMessages(JSON.parse(cachedMessages));
           }
         } else {
-           localStorage.removeItem(TOPIC_AI_TUTOR_SELECTION_KEY); // clear invalid selection
+           localStorage.removeItem(TOPIC_AI_TUTOR_SELECTION_KEY); 
         }
       }
     } catch (error) {
@@ -106,42 +105,45 @@ export default function TopicAiTutorView() {
       const messageCacheKey = getCacheKey(subject, topic);
       if (messageCacheKey && messages.length > 0) {
         localStorage.setItem(messageCacheKey, JSON.stringify(messages));
+      } else if (messageCacheKey && messages.length === 0) {
+        // If messages are cleared for a topic, remove from cache
+        localStorage.removeItem(messageCacheKey);
       }
     }
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
     }
-  }, [messages, subject, topic, isTopicSelected, toast]);
+  }, [messages, subject, topic, isTopicSelected]);
 
   const handleSubjectChange = (selectedSubject: string) => {
+    const oldMessageCacheKey = getCacheKey(subject, topic);
+    if(oldMessageCacheKey) localStorage.removeItem(oldMessageCacheKey);
+
     setSubject(selectedSubject);
     setTopic("");
     setMessages([]);
     setIsTopicSelected(false);
-    const messageCacheKey = getCacheKey(subject, topic); // old subject/topic
-    if(messageCacheKey) localStorage.removeItem(messageCacheKey);
   };
   
   const handleTopicChange = (selectedTopic: string) => {
+    const oldMessageCacheKey = getCacheKey(subject, topic);
+    if(oldMessageCacheKey && topic !== selectedTopic) localStorage.removeItem(oldMessageCacheKey);
+    
     setTopic(selectedTopic);
     setMessages([]);
     setIsTopicSelected(false);
-     const messageCacheKey = getCacheKey(subject, topic); // old subject/topic
-    if(messageCacheKey) localStorage.removeItem(messageCacheKey);
   };
 
   const handleStartChat = () => {
     if (!subject || !topic) {
-      toast({ title: "Selection Incomplete", description: "Please select both subject and topic.", variant: "destructive" });
+      toast.error("Please select both subject and topic.");
       return;
     }
     setIsTopicSelected(true);
-    // Load messages if any for this new selection
     const messageCacheKey = getCacheKey(subject, topic);
     if (messageCacheKey) {
         const cachedMessages = localStorage.getItem(messageCacheKey);
-        if (cachedMessages) setMessages(JSON.parse(cachedMessages));
-        else setMessages([]);
+        setMessages(cachedMessages ? JSON.parse(cachedMessages) : []);
     }
   };
 
@@ -167,7 +169,7 @@ export default function TopicAiTutorView() {
       const assistantMessage: Message = { id: (Date.now() + 1).toString(), role: "assistant", content: aiResponse.answer };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (e: any) {
-      toast({ title: "Error", description: e.message || "Failed to get response from AI.", variant: "destructive" });
+      toast.error(e.message || "Failed to get response from AI.");
       const assistantErrorMessage: Message = { id: (Date.now() + 1).toString(), role: "assistant", content: "Sorry, I couldn't process your request." };
       setMessages((prev) => [...prev, assistantErrorMessage]);
     } finally {
@@ -190,9 +192,9 @@ export default function TopicAiTutorView() {
           <CardContent className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="subject">Subject</Label>
-                <Select value={subject} onValueChange={handleSubjectChange} name="subject-select">
-                  <SelectTrigger id="subject" suppressHydrationWarning>
+                <Label htmlFor="subject-select-tutor">Subject</Label>
+                <Select value={subject} onValueChange={handleSubjectChange} name="subject-select-tutor">
+                  <SelectTrigger id="subject-select-tutor" suppressHydrationWarning>
                     <SelectValue placeholder="Select Subject" />
                   </SelectTrigger>
                   <SelectContent>
@@ -203,9 +205,9 @@ export default function TopicAiTutorView() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="topic">Topic</Label>
-                <Select value={topic} onValueChange={handleTopicChange} disabled={!subject || availableTopics.length === 0} name="topic-select">
-                  <SelectTrigger id="topic" suppressHydrationWarning>
+                <Label htmlFor="topic-select-tutor">Topic</Label>
+                <Select value={topic} onValueChange={handleTopicChange} disabled={!subject || availableTopics.length === 0} name="topic-select-tutor">
+                  <SelectTrigger id="topic-select-tutor" suppressHydrationWarning>
                     <SelectValue placeholder="Select Topic" />
                   </SelectTrigger>
                   <SelectContent>
@@ -231,9 +233,7 @@ export default function TopicAiTutorView() {
                 </div>
                 <Button variant="outline" size="sm" onClick={() => {
                     setIsTopicSelected(false);
-                    setMessages([]); // Clear messages when changing topic
-                     const messageCacheKey = getCacheKey(subject, topic);
-                     if(messageCacheKey) localStorage.removeItem(messageCacheKey);
+                    // Messages are not cleared here, they stay cached for when user re-selects
                 }}>
                     Change Topic
                 </Button>
